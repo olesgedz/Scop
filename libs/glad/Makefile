@@ -12,24 +12,20 @@
 # **************************************************************************** #
 
 
-NAME = Scop
+NAME = libglad.a
 FLAGS = -g # -Wall -Wextra -Werror
-CC = clang++
-LIBRARIES = -L./libs/glfw/src/ -lglfw3 -L./libs/glad/ -lglad
-INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ 
+CC = clang
+LIBRARIES = 
+INCLUDES =  -I./include/ 
 
 HEADERS_DIRECTORY = 
 HEADERS_LIST = 
 HEADERS = 
 
 DIRECTORY =  $(shell pwd)
-GLAD_DIRECTORY := $(DIRECTORY)/libs/glad/
-GLAD := $(GLAD_DIRECTORY)libglad.a
-SRCS_DIRECTORY = ./srcs/
-SRCS_LIST = main.cpp
-
+SRCS_LIST = src/glad.c
 OBJS_DIRECTORY = objects/
-OBJS_LIST = $(patsubst %.cpp, %.o, $(SRCS_LIST))
+OBJS_LIST = $(patsubst %.c, %.o, $(SRCS_LIST))
 OBJS = $(addprefix $(OBJS_DIRECTORY), $(OBJS_LIST))
 SDL_LIBS = $(addprefix $(DIRECTORY)/lib/, $(LIB_LIST))
 MAKES = makes
@@ -60,33 +56,28 @@ else
 endif
 
 ifeq ($(detected_OS),Linux)
-	LIBRARIES += -rpath ./gui/build/ -L./gui/build/ -lKiWi   -lOpenCL -lrt -L$(GLAD_DIRECTORY) -lglad
-	GUI_LIB +=    $(shell pkg-config --libs SDL2_image) $(shell pkg-config --libs SDL2_ttf) $(shell pkg-config --libs SDL2_mixer) $(shell pkg-config --libs SDL2_net)
-	 GUI_INC += $(shell pkg-config --cflags SDL2_ttf) $(shell pkg-config --cflags SDL2_image) $(shell pkg-config --cflags SDL2_mixer) $(shell pkg-config --cflags SDL2_net)
-	LIB_KiWi = $(DIR_KiWi)/libKiWi.so
+	LIBRARIES +=
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBRARIES += -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+	LIBRARIES += 
 endif
 
 
 .PHONY: clean fclean re
 
-all: $(MAKES) $(NAME)
+all: $(NAME)
 
 
 $(NAME): $(OBJS) $(HEADERS)
-	$(CC) $(FLAGS)  $(INCLUDES) $(OBJS)  -o $(NAME) $(LIBRARIES)
+	@ar rc $(NAME) $(OBJS)
+	@ranlib $(NAME)
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Finished compilation. Output file : $(COL_VIOLET)$(PWD)/$(NAME)$(COL_END)"
 
-$(MAKES):
-	@$(MAKE) -sC $(GLAD_DIRECTORY)
 
 $(OBJS_DIRECTORY):
 	@mkdir -p $(OBJS_DIRECTORY)
 
-
-$(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
+$(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.c $(HEADERS)
 	@mkdir -p $(@D)
 	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
@@ -100,8 +91,6 @@ clean:
 	@echo "$(NAME): $(RED)object files were deleted$(RESET)"
 
 fclean: clean
-	@rm -r $(LIBFT)
-	@echo "$(NAME): $(RED)$(LIBFT) was deleted$(RESET)"
 	@rm -f $(NAME)
 	@echo "$(NAME): $(RED)$(NAME) was deleted$(RESET)"
 
