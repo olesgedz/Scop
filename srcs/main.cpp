@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 using namespace std;
-// 31
+// 32
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
