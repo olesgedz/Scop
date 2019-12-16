@@ -13,11 +13,10 @@
 
 
 NAME = Scop
-
-FLAGS = -g -Wall -Wextra -Werror
+FLAGS = -g # -Wall -Wextra -Werror
 CC = clang++
-LIBRARIES =  
-INCLUDES = 
+LIBRARIES = -L./libs/glfw/src/ -lglfw3
+INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ 
 
 HEADERS_DIRECTORY = 
 HEADERS_LIST = 
@@ -73,7 +72,7 @@ ifeq ($(detected_OS),Linux)
 	LIB_KiWi = $(DIR_KiWi)/libKiWi.so
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBRARIES += 
+	LIBRARIES += -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 endif
 
 
@@ -95,7 +94,7 @@ $(OBJS_DIRECTORY):
 
 $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
 	@mkdir -p $(@D)
-	@$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
+	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
 
 this:
