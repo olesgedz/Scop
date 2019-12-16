@@ -81,7 +81,7 @@ $(NAME): $(OBJS) $(HEADERS)
 
 $(MAKES):
 	@$(MAKE) -sC $(GLAD_DIRECTORY)
-	@cd libs/glfw/
+	@cd libs/glfw/ && cmake . && make; 
 
 $(OBJS_DIRECTORY):
 	@mkdir -p $(OBJS_DIRECTORY)
