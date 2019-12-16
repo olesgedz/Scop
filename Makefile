@@ -81,6 +81,7 @@ $(NAME): $(OBJS) $(HEADERS)
 
 $(MAKES):
 	@$(MAKE) -sC $(GLAD_DIRECTORY)
+	@cd libs/glfw/
 
 $(OBJS_DIRECTORY):
 	@mkdir -p $(OBJS_DIRECTORY)
@@ -91,6 +92,8 @@ $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
 	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
 
+sub:
+	git submodule update --init --recursive;
 this:
 	@rm -rf $(OBJS_DIRECTORY) && make;
 
