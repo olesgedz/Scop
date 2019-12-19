@@ -13,9 +13,9 @@
 
 
 NAME = Scop
-FLAGS = -g # -Wall -Wextra -Werror
+FLAGS = -v -g # -Wall -Wextra -Werror
 CC = clang++
-LIBRARIES = -L./libs/glfw/src/ -lglfw3 -L./libs/glad/ -lglad
+
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ 
 
 HEADERS_DIRECTORY = 
@@ -60,12 +60,11 @@ else
 endif
 
 ifeq ($(detected_OS),Linux)
-	LIBRARIES += -rpath ./gui/build/ -L./gui/build/ -lKiWi   -lOpenCL -lrt -L$(GLAD_DIRECTORY) -lglad
-	GUI_LIB +=    $(shell pkg-config --libs SDL2_image) $(shell pkg-config --libs SDL2_ttf) $(shell pkg-config --libs SDL2_mixer) $(shell pkg-config --libs SDL2_net)
-	 GUI_INC += $(shell pkg-config --cflags SDL2_ttf) $(shell pkg-config --cflags SDL2_image) $(shell pkg-config --cflags SDL2_mixer) $(shell pkg-config --cflags SDL2_net)
-	LIB_KiWi = $(DIR_KiWi)/libKiWi.so
+	LIBRARIES += -L./libs/glad/ -lglad -ldl  -lGL -L./libs/glfw/src/ -lglfw3 \
+	-lXrandr -lXrender -lXi -lXfixes -lXxf86vm -lXext -lX11 -lpthread -lxcb -lXau -lXdmcp
 endif
-ifeq ($(detected_OS),Darwin)        # Mac OS X
+ifeq ($(detected_OS),Darwin)  
+	LIBRARIES = -L./libs/glad/ -lglad -L./libs/glfw/src/ -lglfw3      # Mac OS X
 	LIBRARIES += -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 endif
 
