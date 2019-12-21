@@ -25,6 +25,9 @@ HEADERS =
 DIRECTORY =  $(shell pwd)
 GLAD_DIRECTORY := $(DIRECTORY)/libs/glad/
 GLAD := $(GLAD_DIRECTORY)libglad.a
+GLFW_DIRECTORY := $(DIRECTORY)/libs/glfw/
+GLFW := $(GLFW_DIRECTORY)src/libglfw3.a
+
 SRCS_DIRECTORY = ./srcs/
 SRCS_LIST = main.cpp
 
@@ -74,13 +77,13 @@ endif
 all: $(MAKES) $(NAME)
 
 
-$(NAME): $(OBJS) $(HEADERS)
+$(NAME): $(OBJS) $(HEADERS)  $(GLFW)
+	echo $(GLFW)
 	$(CC) $(FLAGS)  $(INCLUDES) $(OBJS)  -o $(NAME) $(LIBRARIES)
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Finished compilation. Output file : $(COL_VIOLET)$(PWD)/$(NAME)$(COL_END)"
 
 $(MAKES):
 	@$(MAKE) -sC $(GLAD_DIRECTORY)
-	@cd libs/glfw/ && cmake . && make; 
 
 $(OBJS_DIRECTORY):
 	@mkdir -p $(OBJS_DIRECTORY)
@@ -91,6 +94,9 @@ $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
 	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
 
+
+$(GLFW):
+	@cd libs/glfw/ && cmake . && make; 
 sub:
 	git submodule update --init --recursive;
 this:
