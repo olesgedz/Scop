@@ -1,9 +1,8 @@
-#include <iostream>
+#include <stdio.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-using namespace std;
 // 32
-
+// c++ https://opentk.net/learn/chapter1/2-hello-triangle.html
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -11,7 +10,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void processInput(GLFWwindow *window)
 {
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+		glfwSetWindowShouldClose(window, 1);
 }
 char vertexShaderSource[] = "#version 330 core\
 				layout (location = 0) in vec3 aPos;\
@@ -38,14 +37,14 @@ int		main()
 	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
+		printf("Failed to create GLFW window\n");
 		glfwTerminate();
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
+		printf("Failed to initialize GLAD\n");
 		return -1;
 	}
 	glViewport(0, 0, 800, 600);
@@ -88,8 +87,7 @@ float vertices[] = {
 	if(!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog <<
-		std::endl;
+		printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n");
 	}
 
 	unsigned int fragmentShader;
@@ -101,8 +99,8 @@ float vertices[] = {
 	if(!success)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog <<
-		std::endl;
+		printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n");
+		printf("%s\n",infoLog);
 	}
 
 
@@ -124,16 +122,15 @@ float vertices[] = {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 	
-// 	glUseProgram(shaderProgram);
-	
-// // 0. copy our vertices array in a buffer for OpenGL to use
-// 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-// 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-// 	// 1. then set the vertex attributes pointers
-// 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-// 	glEnableVertexAttribArray(0);
-	// 2. use our shader program when we want to render an object
 		glUseProgram(shaderProgram);
+		
+		// 0. copy our vertices array in a buffer for OpenGL to use
+		// glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		// 1. then set the vertex attributes pointers
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		//2. use our shader program when we want to render an object
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glfwSwapBuffers(window);
