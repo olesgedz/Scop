@@ -96,7 +96,7 @@ $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.c $(HEADERS)
 
 
 $(GLFW):
-	@cd libs/glfw/ && cmake . && make install; 
+	@cd libs/glfw/ && cmake . && make glfw; 
 sub:
 	git submodule update --init --recursive;
 this:
