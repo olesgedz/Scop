@@ -18,16 +18,20 @@ void processInput(GLFWwindow *window)
 }
 char vertexShaderSource[] = "#version 330 core\
 				layout (location = 0) in vec3 aPos;\
+				out vec4 vertexColor;\
 				void main()\
 				{\
 					gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\
+					vertexColor = vec4(aPos.x, aPos.y, aPos.z, 1.0);\
 				}";
 
 char fragmentShaderSource[] = "#version 330 core\
 								out vec4 FragColor;\
+								in vec4 vertexColor;\
+								uniform vec4 ourColor;\
 								void main()\
 								{\
-									FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\
+									FragColor = vertexColor;\
 								}";
 int		main()
 {
@@ -54,16 +58,13 @@ int		main()
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
 float vertices[] = {
-  0.5f, 0.5f, 0.0f, // top right
-0.5f, -0.5f, 0.0f, // bottom right
--0.5f, -0.5f, 0.0f, // bottom left
--0.5f, 0.5f, 0.0f // top left
+	-0.5f, -0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	0.0f, 0.5f, 0.0f
 	};
 	unsigned int indices[] = { // note that we start from 0!
-	0, 1, 3, // first triangle
-	1, 2, 3 // second triangle
+	0, 1, 2 // first triangle
 };
 
 		unsigned int VAO;
@@ -132,6 +133,7 @@ float vertices[] = {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //wireframe
+
 	while(!glfwWindowShouldClose(window))
 	{
 		processInput(window);
