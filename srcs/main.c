@@ -51,13 +51,17 @@ int		main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-
-
-
 float vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
+  // first triangle
+0.5f, 0.5f, 0.0f, // top right
+0.5f, -0.5f, 0.0f, // bottom right
+-0.5f, 0.5f, 0.0f, // top left
+// second triangle
+0.5f, -0.5f, 0.0f, // bottom right
+-0.5f, -0.5f, 0.0f, // bottom left
+-0.5f, 0.5f, 0.0f // top left
+// second triangle
+
 	};
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
@@ -132,7 +136,7 @@ float vertices[] = {
 		glEnableVertexAttribArray(0);
 		//2. use our shader program when we want to render an object
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
