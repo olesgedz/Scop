@@ -1,6 +1,7 @@
-#include <stdio.h>
+#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+using namespace std;
 // 32
 // c++ https://opentk.net/learn/chapter1/2-hello-triangle.html
 

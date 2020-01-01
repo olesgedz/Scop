@@ -14,10 +14,9 @@
 
 NAME = Scop
 FLAGS = -v -g # -Wall -Wextra -Werror
-CC = clang
+CC = clang++
 
-INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ 
-
+INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/
 HEADERS_DIRECTORY = 
 HEADERS_LIST = 
 HEADERS = 
@@ -28,11 +27,11 @@ GLAD := $(GLAD_DIRECTORY)libglad.a
 GLFW_DIRECTORY := $(DIRECTORY)/libs/glfw/
 GLFW := $(GLFW_DIRECTORY)src/libglfw3.a
 
-SRCS_DIRECTORY = ./srcs/
-SRCS_LIST = main.c
+SRCS_DIRECTORY = ./src/
+SRCS_LIST = main.cpp
 
 OBJS_DIRECTORY = objects/
-OBJS_LIST = $(patsubst %.c, %.o, $(SRCS_LIST))
+OBJS_LIST = $(patsubst %.cpp, %.o, $(SRCS_LIST))
 OBJS = $(addprefix $(OBJS_DIRECTORY), $(OBJS_LIST))
 SDL_LIBS = $(addprefix $(DIRECTORY)/lib/, $(LIB_LIST))
 MAKES = makes
@@ -89,7 +88,7 @@ $(OBJS_DIRECTORY):
 	@mkdir -p $(OBJS_DIRECTORY)
 
 
-$(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.c $(HEADERS)
+$(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
 	@mkdir -p $(@D)
 	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
