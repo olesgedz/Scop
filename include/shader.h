@@ -6,7 +6,7 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/01 03:47:42 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/01/01 03:48:46 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/01/01 04:07:15 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,10 @@ class Shader
 		// the program ID
 		unsigned int ID;
 		// constructor reads and builds the shader
-		Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+		Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
+		{
+			
+		}
 		// use/activate the shader
 		void use();
 		// utility uniform functions
