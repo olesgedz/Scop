@@ -15,6 +15,7 @@
  // include glad to get all the required OpenGL headers
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "stb_image.h"
 
 #include <string>
 #include <fstream>

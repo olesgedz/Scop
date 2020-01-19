@@ -16,7 +16,7 @@ NAME = Scop
 FLAGS = -v -g # -Wall -Wextra -Werror
 CC = clang++
 
-INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/
+INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ -I./libs/stb_image/
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
 HEADERS = include/shader.h
@@ -28,7 +28,8 @@ GLFW_DIRECTORY := $(DIRECTORY)/libs/glfw/
 GLFW := $(GLFW_DIRECTORY)src/libglfw3.a
 
 SRCS_DIRECTORY = ./src/
-SRCS_LIST = main.cpp
+SRCS_LIST = main.cpp \
+			stb_image_helper.cpp
 
 OBJS_DIRECTORY = objects/
 OBJS_LIST = $(patsubst %.cpp, %.o, $(SRCS_LIST))
