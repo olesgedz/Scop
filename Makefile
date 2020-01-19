@@ -17,9 +17,9 @@ FLAGS = -v -g # -Wall -Wextra -Werror
 CC = clang++
 
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/
-HEADERS_DIRECTORY = 
+HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
-HEADERS = 
+HEADERS = include/shader.h
 
 DIRECTORY =  $(shell pwd)
 GLAD_DIRECTORY := $(DIRECTORY)/libs/glad/
