@@ -16,7 +16,7 @@ NAME = Scop
 FLAGS = -v -g # -Wall -Wextra -Werror
 CC = clang++
 
-INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ -I./libs/stb_image/
+INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ -I./libs/stb_image/ -I./libs/glm/
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
 HEADERS = include/shader.h
