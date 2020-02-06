@@ -13,7 +13,7 @@
 
 
 NAME = Scop
-FLAGS = -v -g # -Wall -Wextra -Werror
+FLAGS = -g # -Wall -Wextra -Werror
 CC = clang++
 
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ -I./libs/stb_image/ -I./libs/glm/
@@ -78,8 +78,7 @@ all: $(MAKES) $(NAME)
 
 
 $(NAME): $(OBJS) $(HEADERS)  $(GLFW)
-	echo $(GLFW)
-	$(CC) $(FLAGS)  $(INCLUDES) $(OBJS)  -o $(NAME) $(LIBRARIES)
+	@$(CC) $(FLAGS)  $(INCLUDES) $(OBJS)  -o $(NAME) $(LIBRARIES)
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Finished compilation. Output file : $(COL_VIOLET)$(PWD)/$(NAME)$(COL_END)"
 
 $(MAKES):
@@ -91,7 +90,7 @@ $(OBJS_DIRECTORY):
 
 $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
 	@mkdir -p $(@D)
-	$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
+	@$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
 
 
