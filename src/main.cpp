@@ -19,7 +19,7 @@ glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float lastX = 400, lastY = 300;
-float pitch, yaw;
+float u_pitch = 0.0f, u_yaw = -90.0f;
 using namespace glm;
 
 int main()
@@ -226,20 +226,19 @@ int main()
 		glm::mat4 view = glm::mat4(1.0f);
 		glm::mat4 projection = glm::mat4(1.0f);
 		model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		// retrieve the matrix uniform locations
+	
+		
 		unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
 		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
 		// pass them to the shaders (3 different ways)
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 		// note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-		glm::vec3 front;
-		front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-		front.y = sin(glm::radians(pitch));
-		front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-		cameraFront = glm::normalize(front);
+		
 		ourShader.setMat4("projection", projection);
 
 		// render box
@@ -256,6 +255,7 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
+	
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -307,10 +307,16 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 	float sensitivity = 0.05f;
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
-	yaw += xoffset;
-	pitch += yoffset;
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	u_yaw += xoffset;
+	u_pitch += yoffset;
+	if (u_pitch > 89.0f)
+		u_pitch = 89.0f;
+	if (u_pitch < -89.0f)
+		u_pitch = -89.0f;
+	glm::vec3 front;
+	
+	front.x = cos(glm::radians(u_pitch)) * cos(glm::radians(u_yaw));
+	front.y = sin(glm::radians(u_pitch));
+	front.z = cos(glm::radians(u_pitch)) * sin(glm::radians(u_yaw));
+	cameraFront = glm::normalize(front);
 }
