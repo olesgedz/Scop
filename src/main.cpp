@@ -1,5 +1,5 @@
 #include "shader.h"
-
+#include "mesh.hpp"
 //#include <filesystem>
 using namespace std;
 // 32
@@ -22,6 +22,56 @@ float lastFrame = 0.0f; // Time of last frame
 float lastX = 400, lastY = 300;
 float u_pitch = 0.0f, u_yaw = -90.0f;
 using namespace glm;
+
+void load_obj(const char* filename, Mesh* mesh) {
+  ifstream in(filename, ios::in);
+  if (!in) { cerr << "Cannot open " << filename << endl; exit(1); }
+  vector<int> nb_seen;
+
+  string line;
+  while (getline(in, line)) {
+    if (line.substr(0,2) == "v ") {
+      istringstream s(line.substr(2));
+      glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0;
+      mesh->vertices.push_back(v);
+    }  else if (line.substr(0,2) == "f ") {
+      istringstream s(line.substr(2));
+      GLushort a,b,c;
+      s >> a; s >> b; s >> c;
+      a--; b--; c--;
+      mesh->elements.push_back(a); mesh->elements.push_back(b); mesh->elements.push_back(c);
+    }
+    else if (line[0] == '#') { /* ignoring this line */ }
+    else { /* ignoring this line */ }
+  }
+
+  mesh->normals.resize(mesh->vertices.size(), glm::vec3(0.0, 0.0, 0.0));
+  nb_seen.resize(mesh->vertices.size(), 0);
+  for (unsigned int i = 0; i < mesh->elements.size(); i+=3) {
+    GLushort ia = mesh->elements[i];
+    GLushort ib = mesh->elements[i+1];
+    GLushort ic = mesh->elements[i+2];
+    glm::vec3 normal = glm::normalize(glm::cross(
+      glm::vec3(mesh->vertices[ib]) - glm::vec3(mesh->vertices[ia]),
+      glm::vec3(mesh->vertices[ic]) - glm::vec3(mesh->vertices[ia])));
+
+    int v[3];  v[0] = ia;  v[1] = ib;  v[2] = ic;
+    for (int j = 0; j < 3; j++) {
+      GLushort cur_v = v[j];
+      nb_seen[cur_v]++;
+      if (nb_seen[cur_v] == 1) {
+	mesh->normals[cur_v] = normal;
+      } else {
+	// average
+	mesh->normals[cur_v].x = mesh->normals[cur_v].x * (1.0 - 1.0/nb_seen[cur_v]) + normal.x * 1.0/nb_seen[cur_v];
+	mesh->normals[cur_v].y = mesh->normals[cur_v].y * (1.0 - 1.0/nb_seen[cur_v]) + normal.y * 1.0/nb_seen[cur_v];
+	mesh->normals[cur_v].z = mesh->normals[cur_v].z * (1.0 - 1.0/nb_seen[cur_v]) + normal.z * 1.0/nb_seen[cur_v];
+	mesh->normals[cur_v] = glm::normalize(mesh->normals[cur_v]);
+      }
+    }
+  }
+}
+
 
 int main()
 {
@@ -65,7 +115,6 @@ int main()
 	// build and compile our shader zprogram
 	// ------------------------------------
 	Shader ourShader("../shaders/shader.vs", "../shaders/shader.fs");
-
 	float vertices[] = {
 		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
@@ -189,7 +238,6 @@ int main()
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 	glEnable(GL_DEPTH_TEST);
-
 	// // Camera
 	// glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	// glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -256,7 +304,7 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
-	
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
