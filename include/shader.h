@@ -6,13 +6,17 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/01 03:47:42 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/01/01 04:07:15 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/02/19 17:12:56 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SHADER_H
 #define SHADER_H
  // include glad to get all the required OpenGL headers
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
@@ -21,10 +25,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "debug_gl.hpp"
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 using namespace std;
 class Shader
 {

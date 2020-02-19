@@ -4,3 +4,9 @@
 [submodule "libs/glm"]
 	path = libs/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "libs/imgui"]
+	path = libs/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "libs/FastNoise"]
+	path = libs/FastNoise
+	url = https://github.com/Auburns/FastNoise.git
