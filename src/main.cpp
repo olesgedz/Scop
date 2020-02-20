@@ -30,64 +30,96 @@ void load_obj(const char* filename, Mesh* mesh) {
 
   string line;
   while (getline(in, line)) {
-    if (line.substr(0,2) == "v ") {
-      istringstream s(line.substr(2));
-      glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0;
-      mesh->vertices.push_back(v);
-    }  else if (line.substr(0,2) == "f ") {
-      istringstream s(line.substr(2));
-      GLushort a,b,c;
-      s >> a; s >> b; s >> c;
-      a--; b--; c--;
-      mesh->elements.push_back(a); mesh->elements.push_back(b); mesh->elements.push_back(c);
-    }
-    else if (line[0] == '#') { /* ignoring this line */ }
-    else { /* ignoring this line */ }
+	if (line.substr(0,2) == "v ") {
+	  istringstream s(line.substr(2));
+	  glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0;
+	  mesh->vertices.push_back(v);
+	}  else if (line.substr(0,2) == "f ") {
+	  istringstream s(line.substr(2));
+	  GLushort a,b,c;
+	  s >> a; s >> b; s >> c;
+	  a--; b--; c--;
+	  mesh->elements.push_back(a); mesh->elements.push_back(b); mesh->elements.push_back(c);
+	}
+	else if (line[0] == '#') { /* ignoring this line */ }
+	else { /* ignoring this line */ }
   }
 
   mesh->normals.resize(mesh->vertices.size(), glm::vec3(0.0, 0.0, 0.0));
   nb_seen.resize(mesh->vertices.size(), 0);
   for (unsigned int i = 0; i < mesh->elements.size(); i+=3) {
-    GLushort ia = mesh->elements[i];
-    GLushort ib = mesh->elements[i+1];
-    GLushort ic = mesh->elements[i+2];
-    glm::vec3 normal = glm::normalize(glm::cross(
-      glm::vec3(mesh->vertices[ib]) - glm::vec3(mesh->vertices[ia]),
-      glm::vec3(mesh->vertices[ic]) - glm::vec3(mesh->vertices[ia])));
+	GLushort ia = mesh->elements[i];
+	GLushort ib = mesh->elements[i+1];
+	GLushort ic = mesh->elements[i+2];
+	glm::vec3 normal = glm::normalize(glm::cross(
+	  glm::vec3(mesh->vertices[ib]) - glm::vec3(mesh->vertices[ia]),
+	  glm::vec3(mesh->vertices[ic]) - glm::vec3(mesh->vertices[ia])));
 
-    int v[3];  v[0] = ia;  v[1] = ib;  v[2] = ic;
-    for (int j = 0; j < 3; j++) {
-      GLushort cur_v = v[j];
-      nb_seen[cur_v]++;
-      if (nb_seen[cur_v] == 1) {
+	int v[3];  v[0] = ia;  v[1] = ib;  v[2] = ic;
+	for (int j = 0; j < 3; j++) {
+	  GLushort cur_v = v[j];
+	  nb_seen[cur_v]++;
+	  if (nb_seen[cur_v] == 1) {
 	mesh->normals[cur_v] = normal;
-      } else {
+	  } else {
 	// average
 	mesh->normals[cur_v].x = mesh->normals[cur_v].x * (1.0 - 1.0/nb_seen[cur_v]) + normal.x * 1.0/nb_seen[cur_v];
 	mesh->normals[cur_v].y = mesh->normals[cur_v].y * (1.0 - 1.0/nb_seen[cur_v]) + normal.y * 1.0/nb_seen[cur_v];
 	mesh->normals[cur_v].z = mesh->normals[cur_v].z * (1.0 - 1.0/nb_seen[cur_v]) + normal.z * 1.0/nb_seen[cur_v];
 	mesh->normals[cur_v] = glm::normalize(mesh->normals[cur_v]);
-      }
-    }
+	  }
+	}
   }
 }
 
 class Mesh1 {
+	private:
+	Shader *shader;	
 	public:
-	GLuint vbo;
+	GLuint VBO;
+	GLuint VAO;
 	float *vertices;
-	Mesh1(float *vertices)
+	size_t nVertices;
+	Mesh1(float *vertices, size_t nVertices)
 	{
 		this->vertices = vertices;
+		this->nVertices = nVertices;
+	}
+
+	void bindShader(Shader &shader)
+	{
+		this->shader = &shader;
+	}
+
+	void runShader()
+	{
+		shader->use();
 	}
 
 	void upload()
 	{
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * nVertices, vertices, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		
+		
 		glEnableVertexAttribArray(0);
+		glGenVertexArrays(1, &VAO);
+		glBindVertexArray(VAO);
+		// 2. copy our vertices array in a buffer for OpenGL to use
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		cout << "Vertices: "<< nVertices << endl;
+		glBufferData(GL_ARRAY_BUFFER, sizeof(*vertices) * nVertices, vertices, GL_STATIC_DRAW);
+		// 3. then set our vertex attributes pointers
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+		glEnableVertexAttribArray(0);
+	}
+
+	void draw()
+	{
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, nVertices / 3);
 	}
 
 };
@@ -137,52 +169,74 @@ int main()
 	// build and compile our shader zprogram
 	// ------------------------------------
 	Shader ourShader("../shaders/shader.vs", "../shaders/shader.fs");
+	// float vertices[] = {
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+	// 	0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+	// 	0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+	// 	0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+	// 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+	// 	0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+	// 	-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+	// 	-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+	// 	-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+	// 	-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+	// 	0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+	// 	0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	// 	0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	// 	0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	// 	0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+	// 	0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+	// 	0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+	// 	-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+	// 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+	// 	0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+	// 	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+	// 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
+
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-
-		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
-
-	Mesh1 mesh = Mesh1(vertices);
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f, 0.5f, 0.0f};
+	Mesh1 mesh = Mesh1(vertices, sizeof(vertices)/ sizeof(*vertices));
 	mesh.upload();
+	
+	// unsigned int VBO;
+	// glGenBuffers(1, &VBO);
+	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	// unsigned int VAO;
+	// glGenVertexArrays(1, &VAO);
+	// glBindVertexArray(VAO);
+	// // 2. copy our vertices array in a buffer for OpenGL to use
+	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// // 3. then set our vertex attributes pointers
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	// glEnableVertexAttribArray(0);
+	// cout << sizeof(vertices) << endl;
 	// load and create a texture
 	// -------------------------
 	// unsigned int texture1, texture2;
@@ -245,9 +299,7 @@ int main()
 
 	// tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
 	// -------------------------------------------------------------------------------------------
-	ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
-	// ourShader.setInt("texture1", 0);
-	// ourShader.setInt("texture2", 1);
+	mesh.bindShader(ourShader);
 	glEnable(GL_DEPTH_TEST);
 	// // Camera
 	// glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -259,11 +311,11 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	// render loop
 	// -----------
+	ourShader.use();
+
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+	
 		// -----
 		processInput(window);
 
@@ -271,15 +323,18 @@ int main()
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
+		// mesh.upload();
 
 		// activate shader
-		ourShader.use();
-
 		// create transformations
 	
 		// render box
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		mesh.draw();
+
+	
+		
+		
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 
@@ -288,7 +343,7 @@ int main()
 	}
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteBuffers(1, &mesh.vbo);
+	// glDeleteBuffers(1, &mesh.VBO);
 	//glDeleteBuffers(1, &EBO);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
