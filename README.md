@@ -1,2 +1,2 @@
 # Scop
-[![](https://github.com/olesgedz/Scop/actions)
+![C/C++ CI](https://github.com/olesgedz/Scop/workflows/C/C++%20CI/badge.svg)
