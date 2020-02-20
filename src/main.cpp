@@ -215,7 +215,7 @@ float vertices[] = {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-
+d
 		// input
 		// -----
 		processInput(window);
