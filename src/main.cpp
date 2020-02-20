@@ -31,7 +31,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(0.5f, 0.5f, 2.0f);
 using namespace glm;
 
 void load_obj(const char* filename, Mesh* mesh) {
@@ -224,12 +224,15 @@ float vertices[] = {
 		// ------
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		lightPos.x = 0.0f + sin(glfwGetTime()/2) * 1.5f;
+		lightPos.z = 0.0f + cos(glfwGetTime()/2) * 1.5f;
+       // lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
 		// be sure to activate shader when setting uniforms/drawing objects
 		lightingShader.use();
 		lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		lightingShader.setVec3("lightColor",  0.0f, 1.0f, 0.0f);
 		lightingShader.setVec3("lightPos", lightPos);
+		lightingShader.setVec3("viewPos", camera.Position);
 
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
