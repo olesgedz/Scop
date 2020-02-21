@@ -16,7 +16,9 @@ NAME = Scop
 FLAGS = -g # -Wall -Wextra -Werror
 CC = clang++
 
-INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ -I./libs/stb_image/ -I./libs/glm/
+INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ \
+ -I./libs/stb_image/ -I./libs/glm/ -I./libs/imgui/ -I./libs/imgui/examples/
+
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
 HEADERS = include/shader.h
@@ -26,10 +28,17 @@ GLAD_DIRECTORY := $(DIRECTORY)/libs/glad/
 GLAD := $(GLAD_DIRECTORY)libglad.a
 GLFW_DIRECTORY := $(DIRECTORY)/libs/glfw/
 GLFW := $(GLFW_DIRECTORY)src/libglfw3.a
-
+IMGUI_DIRECTORY := $(DIRECTORY)/libs/imgui
+# IMGUI_SRCS := 
+# IMGUI := $(patsubst %.cpp, %.o, $(IMGUI_SRCS))
 SRCS_DIRECTORY = ./src/
 SRCS_LIST = main.cpp \
-			stb_image_helper.cpp
+			stb_image_helper.cpp\
+			$(IMGUI_DIRECTORY)/examples/imgui_impl_glfw.cpp \
+			$(IMGUI_DIRECTORY)/examples/imgui_impl_opengl3.cpp \
+			$(IMGUI_DIRECTORY)/imgui.cpp \
+			$(IMGUI_DIRECTORY)/imgui_draw.cpp \
+			$(IMGUI_DIRECTORY)/imgui_widgets.cpp
 
 OBJS_DIRECTORY = objects/
 OBJS_LIST = $(patsubst %.cpp, %.o, $(SRCS_LIST))
@@ -78,7 +87,7 @@ all: $(MAKES) $(NAME)
 
 
 $(NAME): $(OBJS) $(HEADERS)  $(GLFW)
-	@$(CC) $(FLAGS)  $(INCLUDES) $(OBJS)  -o $(NAME) $(LIBRARIES)
+	@$(CC) $(FLAGS)  $(INCLUDES) $(OBJS) -o $(NAME) $(LIBRARIES)
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Finished compilation. Output file : $(COL_VIOLET)$(PWD)/$(NAME)$(COL_END)"
 
 $(MAKES):
@@ -89,6 +98,11 @@ $(OBJS_DIRECTORY):
 
 
 $(OBJS_DIRECTORY)%.o : $(SRCS_DIRECTORY)%.cpp $(HEADERS)
+	@mkdir -p $(@D)
+	@$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
+	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
+
+$(OBJS_DIRECTORY)%.o : %.cpp $(HEADERS)
 	@mkdir -p $(@D)
 	@$(CC) $(FLAGS) -c $(INCLUDES) $< -o $@
 	@echo "$(CLEAR_LINE)[`expr $(CURRENT_FILES) '*' 100 / $(TOTAL_FILES) `%] $(COL_BLUE)[$(NAME)] $(COL_GREEN)Compiling file [$(COL_VIOLET)$<$(COL_GREEN)].($(CURRENT_FILES) / $(TOTAL_FILES))$(COL_END)$(BEGIN_LINE)"
