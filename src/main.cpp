@@ -98,9 +98,12 @@ void load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec
 			GLushort a, b, c;
 			GLushort A, B, C;
 			GLushort a1, b1, c1;
-			const char *chh = line.c_str();
-			sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
-			cout << a << " " << b << " " << c << endl;
+			// const char *chh = line.c_str();
+			// sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
+			// cout << a << " " << b << " " << c << endl;
+			s >> a;
+			s >> b;
+			s >> c;
 			a--;
 			b--;
 			c--;
