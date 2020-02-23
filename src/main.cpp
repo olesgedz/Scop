@@ -98,12 +98,12 @@ void load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec
 			GLushort a, b, c;
 			GLushort A, B, C;
 			GLushort a1, b1, c1;
-			// const char *chh = line.c_str();
-			// sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
-			// cout << a << " " << b << " " << c << endl;
-			s >> a;
-			s >> b;
-			s >> c;
+			const char *chh = line.c_str();
+			sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
+			cout << a << " " << b << " " << c << endl;
+			// s >> a;
+			// s >> b;
+			// s >> c;
 			a--;
 			b--;
 			c--;
@@ -322,7 +322,7 @@ int main(int argc, char **argv)
 	// glEnableVertexAttribArray(0);
 	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	// glEnableVertexAttribArray(1);
-	unsigned int VBO, VAO, EBO;
+	unsigned int VBO, VAO, EBO, vbo_mesh_normals;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -331,9 +331,24 @@ int main(int argc, char **argv)
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	// cout << vertices <<
 	glEnableVertexAttribArray(0);
+
+	
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
+
+	// glEnableVertexAttribArray(1);
+	// glBindBuffer(GL_ARRAY_BUFFER, vbo_mesh_normals);
+	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals.data()[0]), normals.data(), GL_STATIC_DRAW);
+
+	// glVertexAttribPointer(
+	// 	attribute_v_normal, // attribute
+	// 	3,					// number of elements per vertex, here (x,y,z)
+	// 	GL_FLOAT,			// the type of each element
+	// 	GL_FALSE,			// take our values as-is
+	// 	0,					// no extra data between each position
+	// 	0					// offset of first element
+	// );
 	// cout << "ebo" << EBO << endl;
 	// GLshort indices[] = {
 	// 	// note that we start from 0!
