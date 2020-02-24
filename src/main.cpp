@@ -100,7 +100,7 @@ void load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec
 			GLushort a1, b1, c1;
 			const char *chh = line.c_str();
 			sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
-			cout << a << " " << b << " " << c << endl;
+			//cout << a << " " << b << " " << c << endl;
 			// s >> a;
 			// s >> b;
 			// s >> c;
@@ -163,10 +163,10 @@ int main(int argc, char **argv)
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
-
-	// glfw window creation
-	// --------------------
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+	cout << GL_VERSION << endl;
+		// glfw window creation
+		// --------------------
+		GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -252,6 +252,7 @@ int main(int argc, char **argv)
 	}
 	
 	cout << "dsad" << elements.size() << endl;
+	cout << glGetString(GL_VERSION) << endl;
 	// float vertices[] = {
 	// 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 	// 	0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
@@ -322,7 +323,7 @@ int main(int argc, char **argv)
 	// glEnableVertexAttribArray(0);
 	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	// glEnableVertexAttribArray(1);
-	unsigned int VBO, VAO, EBO, vbo_mesh_normals;
+	unsigned int VBO, VAO, EBO, vbo_normals;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -337,31 +338,22 @@ int main(int argc, char **argv)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
 
-	// glEnableVertexAttribArray(1);
-	// glBindBuffer(GL_ARRAY_BUFFER, vbo_mesh_normals);
-	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals.data()[0]), normals.data(), GL_STATIC_DRAW);
+	if (normals.size() > 0)
+	{
+		// glEnableVertexAttribArray(1);
+		// glGenBuffers(1, &vbo_normals);
+		// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+		// 			 normals.data(), GL_STATIC_DRAW);
+		// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(3);
+		glGenBuffers(1, &vbo_normals);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+					 normals.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	}
 
-	// glVertexAttribPointer(
-	// 	attribute_v_normal, // attribute
-	// 	3,					// number of elements per vertex, here (x,y,z)
-	// 	GL_FLOAT,			// the type of each element
-	// 	GL_FALSE,			// take our values as-is
-	// 	0,					// no extra data between each position
-	// 	0					// offset of first element
-	// );
-	// cout << "ebo" << EBO << endl;
-	// GLshort indices[] = {
-	// 	// note that we start from 0!
-	// 	0, 1, 3, // first triangle
-	// 	1, 2, 3 // second triangle
-	// };
-	// cout << elements.data()[0] << endl;
-	// glGenBuffers(1, &EBO);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	cout << "ebo" << EBO << endl;
-	// render loop
-	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
 
@@ -387,7 +379,6 @@ int main(int argc, char **argv)
 		// input
 		// -----
 		processInput(window);
-
 		// render
 		// ------
 
@@ -395,6 +386,7 @@ int main(int argc, char **argv)
 		lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
 		// lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
 		// be sure to activate shader when setting uniforms/drawing objects
+
 		lightingShader.use();
 
 		// view/projection transformations
@@ -402,6 +394,8 @@ int main(int argc, char **argv)
 		glm::mat4 view = camera.GetViewMatrix();
 		lightingShader.setMat4("projection", projection);
 		lightingShader.setMat4("view", view);
+		lightingShader.setVec3("objectColor", vec3(1,1,1));
+		lightingShader.setVec3("lightPos", lightPos);
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -419,11 +413,8 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-		//glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-		//cout << size << endl;
-		//glDrawElements(GL_TRIANGLES, elements.size(), GL_UNSIGNED_SHORT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-		 }
+			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		}
 		// // also draw the lamp object
 		// lampShader.use();
 		// lampShader.setMat4("projection", projection);
@@ -472,9 +463,8 @@ int main(int argc, char **argv)
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
 	// glDeleteVertexArrays(1, &VAO);
-	// // glDeleteVertexArrays(1, &lightVAO);
-	// glDeleteBuffers(1, &VBO);
-		ImGui_ImplOpenGL3_Shutdown();
+	glDeleteBuffers(1, &VBO);
+	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
