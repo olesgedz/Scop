@@ -15,10 +15,10 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec3 Normal;
 in vec3 LightPos;   // extra in variable, since we need the light position in view space we calculate this in the vertex shader
-
+in vec2 TextureCoord;
 uniform vec3 lightColor;
 uniform vec3 objectColor;
-
+uniform sampler2D texture1;
 void main()
 {
     
@@ -39,7 +39,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * lightColor; 
     
-     vec3 result = (diffuse + specular + ambient) * objectColor;
+     vec3 result = (diffuse + specular + ambient)  * vec3(texture(texture1, TextureCoord));// * objectColor;
     // FragColor = vec4(Normal, 1.0);
     FragColor = vec4(result, 1.0);
 }

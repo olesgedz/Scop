@@ -63,75 +63,155 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 vector<glm::vec4> vertices;
 vector<glm::vec3> normals;
-vector<GLushort> elements;
+vector<glm::vec2> uvs;
 
+vector<GLushort> elements;
+std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+std::vector<glm::vec3> temp_vertices;
+std::vector<glm::vec2> temp_uvs;
+std::vector<glm::vec3> temp_normals;
 
 // lighting
 glm::vec3 lightPos(0.5f, 0.5f, 2.0f);
+glm::vec3 modelPos(0.0f, 0.0f, 0.0f);
+
 using namespace glm;
 
-void load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements)
+//bool load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements)
+bool load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<vec2> &uvs)
 {
-	ifstream in(filename, ios::in);
-	if (!in)
+	// ifstream in(filename, ios::in);
+	// if (!in)
+	// {
+	// 	cerr << "Cannot open " << filename << endl;
+	// 	exit(1);
+	// }
+	FILE *file = fopen(filename, "r");
+	if (file == NULL)
 	{
-		cerr << "Cannot open " << filename << endl;
-		exit(1);
+		printf("Impossible to open the file !\n");
+		return false;
 	}
+	while (1)
+	{
 
-	string line;
-	while (getline(in, line))
-	{
-		if (line.substr(0, 2) == "v ")
+		char lineHeader[128];
+		// read the first word of the line
+		int res = fscanf(file, "%s", lineHeader);
+		if (res == EOF)
+			break; // EOF = End Of File. Quit the loop.
+		if (strcmp(lineHeader, "v") == 0)
 		{
-			istringstream s(line.substr(2));
-			glm::vec4 v;
-			s >> v.x;
-			s >> v.y;
-			s >> v.z;
-			v.w = 1.0f;
-			vertices.push_back(v);
+			glm::vec3 vertex;
+			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			temp_vertices.push_back(vertex);
 		}
-		else if (line.substr(0, 2) == "f ")
+		else if (strcmp(lineHeader, "vt") == 0)
 		{
-			istringstream s(line.substr(2));
-			GLushort a, b, c;
-			GLushort A, B, C;
-			GLushort a1, b1, c1;
-			const char *chh = line.c_str();
-			sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
-			//cout << a << " " << b << " " << c << endl;
-			// s >> a;
-			// s >> b;
-			// s >> c;
-			a--;
-			b--;
-			c--;
-			elements.push_back(a);
-			elements.push_back(b);
-			elements.push_back(c);
+			glm::vec2 uv;
+			fscanf(file, "%f %f\n", &uv.x, &uv.y);
+			temp_uvs.push_back(uv);
 		}
-		else if (line[0] == '#')
+		else if (strcmp(lineHeader, "vn") == 0)
 		{
-			/* ignoring this line */
+			glm::vec3 normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			temp_normals.push_back(normal);
 		}
-		else
+		else if (strcmp(lineHeader, "f") == 0)
 		{
-			/* ignoring this line */
-		}
-	}
+			std::string vertex1, vertex2, vertex3;
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+			if (matches != 9)
+			{
+				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+				return false;
+			}
+			vertexIndices.push_back(vertexIndex[0]);
+			vertexIndices.push_back(vertexIndex[1]);
+			vertexIndices.push_back(vertexIndex[2]);
+			uvIndices.push_back(uvIndex[0]);
+			uvIndices.push_back(uvIndex[1]);
+			uvIndices.push_back(uvIndex[2]);
+			normalIndices.push_back(normalIndex[0]);
+			normalIndices.push_back(normalIndex[1]);
+			normalIndices.push_back(normalIndex[2]);
+			// string line;
+			// while (getline(in, line))
+			// {
+			// 	if (line.substr(0, 2) == "v ")
+			// 	{
+			// 		istringstream s(line.substr(2));
+			// 		glm::vec4 v;
+			// 		s >> v.x;
+			// 		s >> v.y;
+			// 		s >> v.z;
+			// 		v.w = 1.0f;
+			// 		vertices.push_back(v);
+			// 	}
+			// 	else if (line.substr(0, 2) == "f ")
+			// 	{
+			// 		istringstream s(line.substr(2));
+			// 		GLushort a, b, c;
+			// 		GLushort A, B, C;
+			// 		GLushort a1, b1, c1;
+			// 		const char *chh = line.c_str();
+			// 		sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
+			// 		//cout << a << " " << b << " " << c << endl;
+			// 		// s >> a;
+			// 		// s >> b;
+			// 		// s >> c;
+			// 		a--;
+			// 		b--;
+			// 		c--;
+			// 		elements.push_back(a);
+			// 		elements.push_back(b);
+			// 		elements.push_back(c);
+			// 	}
+			// 	else if (line[0] == '#')
+			// 	{
+			// 		/* ignoring this line */
+			// 	}
+			// 	else
+			// 	{
+			// 		/* ignoring this line */
+			// 	}
+			// }
 
-	normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
-	for (int i = 0; i < elements.size(); i += 3)
-	{
-		GLushort ia = elements[i];
-		GLushort ib = elements[i + 1];
-		GLushort ic = elements[i + 2];
-		glm::vec3 normal = glm::normalize(glm::cross(
-			glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
-			glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
-		normals[ia] = normals[ib] = normals[ic] = normal;
+			// normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
+			// for (int i = 0; i < elements.size(); i += 3)
+			// {
+			// 	GLushort ia = elements[i];
+			// 	GLushort ib = elements[i + 1];
+			// 	GLushort ic = elements[i + 2];
+			// 	glm::vec3 normal = glm::normalize(glm::cross(
+			// 		glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
+			// 		glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
+			// 	normals[ia] = normals[ib] = normals[ic] = normal;
+			// }
 	}
+	}
+	
+	for (unsigned int i = 0; i < vertexIndices.size(); i++)
+	{
+		unsigned int vertexIndex = vertexIndices[i];
+		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+		vertices.push_back(vec4(vertex, 1.0f));
+	}
+	for (unsigned int i = 0; i < uvIndices.size(); i++)
+	{
+		unsigned int uvIndex = uvIndices[i];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		uvs.push_back(uv);
+	}
+	for (unsigned int i = 0; i < normalIndices.size(); i++)
+	{
+		unsigned int normalIndex = normalIndices[i];
+		glm::vec3 normal = temp_normals[normalIndex - 1];
+		normals.push_back(normal);
+	}
+	return true;
 }
 
 int main(int argc, char **argv)
@@ -166,7 +246,7 @@ int main(int argc, char **argv)
 	cout << GL_VERSION << endl;
 		// glfw window creation
 		// --------------------
-		GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+		GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -224,6 +304,9 @@ int main(int argc, char **argv)
 	ImGui_ImplOpenGL3_Init(glsl_version);
  	bool show_demo_window = true;
 	bool show_another_window = false;
+	bool rotate_model = true;
+	bool rotate_light = false;
+
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
@@ -241,89 +324,52 @@ int main(int argc, char **argv)
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 
-	//load_obj("../african_head.obj", vertices, normals, elements);
 	if (argc < 1)
-		load_obj("../suzanne.obj", vertices, normals, elements);
+		load_obj("../suzanne.obj", vertices, normals, uvs);
 	else
 	{	char str[80];
 		strcpy(str, "../");
 		strcat(str, argv[1]);
-		load_obj(str, vertices, normals, elements);
+		load_obj(str, vertices, normals, uvs);
 	}
 	
-	cout << "dsad" << elements.size() << endl;
+	cout << "Elements count: " << elements.size() << endl;
 	cout << glGetString(GL_VERSION) << endl;
-	// float vertices[] = {
-	// 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-	// 	0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-	// 	0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-	// 	0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-	// 	-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-	// 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load and generate the texture
+	int width, height, nrChannels;
+	string s;
+	if (argv[2])
+	{
+		s.append("../");
+		s.append(argv[2]);
+		stbi_set_flip_vertically_on_load(true);
+		unsigned char *data = stbi_load(s.c_str(), &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+	}
+	lightingShader.use(); // don't forget to activate/use the shader before setting uniforms!
+	// // either set it manually like so:
+	// glUniform1i(glGetUniformLocation(lightingShader.ID, "texture1"), 0);
+	// // or set it via the texture class
+	lightingShader.setInt("texture1", 0);
 
-	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	// 	0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	// 	0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	// 	0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	// 	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	// 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-
-	// 	-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-	// 	-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-	// 	-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-	// 	-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-	// 	-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-	// 	-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-
-	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-	// 	0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-	// 	0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-	// 	0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-	// 	0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-	// 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-
-	// 	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-	// 	0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-	// 	0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-	// 	0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-	// 	-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-	// 	-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-
-	// 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-	// 	0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-	// 	0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-	// 	0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-	// 	-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-	// 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f};
-	// first, configure the cube's VAO (and VBO)
-	// unsigned int VBO, cubeVAO;
-	// glGenVertexArrays(1, &cubeVAO);
-	// glGenBuffers(1, &VBO);
-
-	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// glBindVertexArray(cubeVAO);
-
-	// // position attribute
-	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	// glEnableVertexAttribArray(0);
-	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	// glEnableVertexAttribArray(1);
-
-	// // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-	// unsigned int lightVAO;
-	// glGenVertexArrays(1, &lightVAO);
-	// glBindVertexArray(lightVAO);
-
-	// // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
-	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	// glEnableVertexAttribArray(0);
-	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	// glEnableVertexAttribArray(1);
-	unsigned int VBO, VAO, EBO, vbo_normals;
+	unsigned int VBO, VAO, EBO, vbo_normals, vbo_uvs;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -334,9 +380,9 @@ int main(int argc, char **argv)
 	glEnableVertexAttribArray(0);
 
 	
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
+	// glGenBuffers(1, &EBO);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
 
 	if (normals.size() > 0)
 	{
@@ -346,12 +392,27 @@ int main(int argc, char **argv)
 		// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
 		// 			 normals.data(), GL_STATIC_DRAW);
 		// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(3);
 		glGenBuffers(1, &vbo_normals);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
 					 normals.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+	}
+	if (uvs.size() > 0)
+	{
+		// glEnableVertexAttribArray(1);
+		// glGenBuffers(1, &vbo_normals);
+		// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+		// 			 normals.data(), GL_STATIC_DRAW);
+		// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glGenBuffers(1, &vbo_uvs);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+		glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
+					 uvs.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
 	}
 
 	while (!glfwWindowShouldClose(window))
@@ -367,7 +428,7 @@ int main(int argc, char **argv)
 		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		glfwPollEvents();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Start the Dear ImGui frame
 
@@ -381,11 +442,12 @@ int main(int argc, char **argv)
 		processInput(window);
 		// render
 		// ------
+		if (rotate_light)
+		{
+			lightPos.x = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
+			lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
+		}
 
-		lightPos.x = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
-		lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
-		// lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
-		// be sure to activate shader when setting uniforms/drawing objects
 
 		lightingShader.use();
 
@@ -399,32 +461,15 @@ int main(int argc, char **argv)
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
+		if (rotate_model)
+		{
+			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
+		}
 		lightingShader.setMat4("model", model);
 
-		// render the cube
 		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-		if (EBO != 0)
-		{
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			int size;
-			glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-			glDrawElements(GL_TRIANGLES, size / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-		}
-		else
-		{
-			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-		}
-		// // also draw the lamp object
-		// lampShader.use();
-		// lampShader.setMat4("projection", projection);
-		// lampShader.setMat4("view", view);
-		// model = glm::mat4(1.0f);
-		// model = glm::translate(model, lightPos);
-		// model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-		// lampShader.setMat4("model", model);
-		// glBindVertexArray(lightVAO);
-		// glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -434,10 +479,10 @@ int main(int argc, char **argv)
 		static float f = 0.0f;
 		static int counter = 0;
 
-		ImGui::Begin("Hello, world!");
+		ImGui::Begin("3D Model");
 		ImGui::Text("This is some useful text.");		   // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-		ImGui::Checkbox("Another Window", &show_another_window);
+		ImGui::Checkbox("Rotate model: ", &rotate_model);
+		ImGui::Checkbox("Rotate light source", &rotate_light);
 
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			 // Edit 1 float using a slider from 0.0f to 1.0f
 		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
