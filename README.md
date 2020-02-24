@@ -1,5 +1,8 @@
 # Scop
 [![C/C++ CI](https://github.com/olesgedz/Scop/workflows/C/C++%20CI/badge.svg?branch=master)](https://github.com/olesgedz/Scop/actions)
+<hr>
+<p><b>Scop is Wavefront.obj file viewer.</b></p>
+<p><b>Here is some rendering examples:</b></p>
 <br>
 <video id="gif-mp4" poster="https://media.giphy.com/media/lMBWPr6YqQcC3HB0yS/200_s.gif" style="margin:0;padding:0" width="480" height="360" autoplay="" loop="">
    <source src="https://media.giphy.com/media/lMBWPr6YqQcC3HB0yS/giphy.mp4" type="video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;">
