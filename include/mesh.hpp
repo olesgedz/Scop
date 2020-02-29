@@ -6,7 +6,7 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/19 17:57:56 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/02/29 17:13:21 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/02/29 19:06:07 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,12 @@ GLint attribute_v_uvs = -1;
 
 GLint uniform_m = -1, uniform_v = -1, uniform_p = -1;
 GLint uniform_m_3x3_inv_transp = -1, uniform_v_inv = -1;
+
 class Mesh {
 private:
 	GLuint voa,vbo_vertices, vbo_normals, vbo_uvs, ibo_elements;
 public:
+	GLint textureExists;
 	vector<glm::vec4> vertices;
 	vector<glm::vec3> normals;
 	vector<glm::vec2> uvs;
@@ -170,14 +172,16 @@ bool load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::
 		// // 				uvs.data(), GL_STATIC_DRAW);
 		
 		// }
-
- 	glGenVertexArrays(1, &this->voa);
-	glGenBuffers(1, &this->vbo_vertices);
-	glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
-	glBindVertexArray(this->voa);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+	if (this->vertices.size() > 0) {
+		glGenVertexArrays(1, &this->voa);
+		glGenBuffers(1, &this->vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
+		glBindVertexArray(this->voa);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+	}
+		glCheckError();
 
 	
 	// glGenBuffers(1, &EBO);
@@ -195,7 +199,9 @@ bool load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::
 		}
 		cout << uvs.size() << endl;
 		if (uvs.size() > 0)
-		{
+		{	
+			if (textureExists)
+			textureExists = 1;
 			glGenBuffers(1, &vbo_uvs);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
 			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
@@ -203,8 +209,13 @@ bool load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(2);
 		}
+		else
+		{
+			textureExists = 0;
+		}
+		
 
-	glCheckError();
+		glCheckError();
 	}
 
 	/**
@@ -266,6 +277,8 @@ bool load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::
 		if (this->vbo_vertices != 0)
 			glDisableVertexAttribArray(attribute_v_coord);
 		if (this->vbo_vertices != 0)
+			glDisableVertexAttribArray(attribute_v_uvs);
+		if (this->vbo_uvs != 0)
 			glDisableVertexAttribArray(attribute_v_uvs);
 	}
 

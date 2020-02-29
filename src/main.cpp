@@ -68,7 +68,7 @@ vector<glm::vec2> uvs;
 
 
 // lighting
-glm::vec3 lightPos(0.5f, 0.7f, 2.0f);
+glm::vec3 lightPos(0.5f, 0.5f, 2.0f);
 glm::vec3 modelPos(0.0f, 0.0f, 0.0f);
 
 using namespace glm;
@@ -218,6 +218,7 @@ int main(int argc, char **argv)
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
+			mesh.textureExists = 1;
 		}
 		else
 		{
@@ -225,56 +226,16 @@ int main(int argc, char **argv)
 		}
 		stbi_image_free(data);
 	}
+	else
+	{
+		mesh.textureExists = 0;
+	}
+	
+	
 	shader.use();
 	shader.setInt("texture1", 0);
 	mesh.upload();
-	//glCheckError();
-	// unsigned int VBO, VAO, EBO, vbo_normals, vbo_uvs;
-	// glGenVertexArrays(1, &VAO);
-	// glGenBuffers(1, &VBO);
-	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
-	// glBindVertexArray(VAO);
-	// glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	// // cout << vertices <<
-	// glEnableVertexAttribArray(0);
-
-	
-	// glGenBuffers(1, &EBO);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
-
-	// if (normals.size() > 0)
-	// {
-	// 	// glEnableVertexAttribArray(1);
-	// 	// glGenBuffers(1, &vbo_normals);
-	// 	// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-	// 	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-	// 	// 			 normals.data(), GL_STATIC_DRAW);
-	// 	// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	// 	glGenBuffers(1, &vbo_normals);
-	// 	glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-	// 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-	// 				 normals.data(), GL_STATIC_DRAW);
-	// 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	// 	glEnableVertexAttribArray(1);
-	// }
-	// if (uvs.size() > 0)
-	// {
-	// 	// glEnableVertexAttribArray(1);
-	// 	// glGenBuffers(1, &vbo_normals);
-	// 	// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-	// 	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-	// 	// 			 normals.data(), GL_STATIC_DRAW);
-	// 	// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	// 	glGenBuffers(1, &vbo_uvs);
-	// 	glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-	// 	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
-	// 				 uvs.data(), GL_STATIC_DRAW);
-	// 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	// 	glEnableVertexAttribArray(2);
-	// }
-
+	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
 	{
 
@@ -302,11 +263,13 @@ int main(int argc, char **argv)
 		processInput(window);
 		// render
 		// ------
-		if (rotate_light)
-		{
-			lightPos.x = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
-			lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
-		}
+		
+		// if (rotate_light)
+		// {
+		// 	lightPos.x = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
+		// 	lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
+		// }
+
 
 
 		shader.use();
@@ -317,7 +280,9 @@ int main(int argc, char **argv)
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
 		shader.setVec3("objectColor", vec3(1,1,1));
-		shader.setVec3("lightPos", lightPos);
+		shader.setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
+		shader.setInt("textureExist", mesh.textureExists);
+		cout << mesh.textureExists << endl;
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -325,6 +290,7 @@ int main(int argc, char **argv)
 		{
 			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
 		}
+		model = translate(model, modelPos );
 		shader.setMat4("model", model);
 
 		mesh.draw();
@@ -341,10 +307,11 @@ int main(int argc, char **argv)
 		ImGui::Text("This is some useful text.");		   // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Rotate model: ", &rotate_model);
 		ImGui::Checkbox("Rotate light source", &rotate_light);
+		ImGui::InputFloat3("LightPos", lightPosF, 2 );
 
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			 // Edit 1 float using a slider from 0.0f to 1.0f
 		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-
+		
 		if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
 			counter++;
 		ImGui::SameLine();
