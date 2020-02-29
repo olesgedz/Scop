@@ -21,8 +21,7 @@ INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ \
 
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
-HEADERS = include/shader.h
-
+HEADERS = $(wildcard include/*.h*)
 DIRECTORY =  $(shell pwd)
 GLAD_DIRECTORY := $(DIRECTORY)/libs/glad/
 GLAD := $(GLAD_DIRECTORY)libglad.a

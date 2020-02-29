@@ -2,7 +2,7 @@
 #include "mesh.hpp"
 #include "camera.hpp"
 #include <string.h>
-//#include <filesystem>
+#include "debugGL.hpp"
 using namespace std;
 //https://learnopengl.com/In-Practice/Debugging
 
@@ -65,154 +65,16 @@ vector<glm::vec4> vertices;
 vector<glm::vec3> normals;
 vector<glm::vec2> uvs;
 
-vector<GLushort> elements;
-std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-std::vector<glm::vec3> temp_vertices;
-std::vector<glm::vec2> temp_uvs;
-std::vector<glm::vec3> temp_normals;
+
 
 // lighting
-glm::vec3 lightPos(0.5f, 0.5f, 2.0f);
+glm::vec3 lightPos(0.5f, 0.7f, 2.0f);
 glm::vec3 modelPos(0.0f, 0.0f, 0.0f);
 
 using namespace glm;
 
 //bool load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements)
-bool load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<vec2> &uvs)
-{
-	// ifstream in(filename, ios::in);
-	// if (!in)
-	// {
-	// 	cerr << "Cannot open " << filename << endl;
-	// 	exit(1);
-	// }
-	FILE *file = fopen(filename, "r");
-	if (file == NULL)
-	{
-		printf("Impossible to open the file !\n");
-		return false;
-	}
-	while (1)
-	{
 
-		char lineHeader[128];
-		// read the first word of the line
-		int res = fscanf(file, "%s", lineHeader);
-		if (res == EOF)
-			break; // EOF = End Of File. Quit the loop.
-		if (strcmp(lineHeader, "v") == 0)
-		{
-			glm::vec3 vertex;
-			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
-			temp_vertices.push_back(vertex);
-		}
-		else if (strcmp(lineHeader, "vt") == 0)
-		{
-			glm::vec2 uv;
-			fscanf(file, "%f %f\n", &uv.x, &uv.y);
-			temp_uvs.push_back(uv);
-		}
-		else if (strcmp(lineHeader, "vn") == 0)
-		{
-			glm::vec3 normal;
-			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
-			temp_normals.push_back(normal);
-		}
-		else if (strcmp(lineHeader, "f") == 0)
-		{
-			std::string vertex1, vertex2, vertex3;
-			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-			int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
-			if (matches != 9)
-			{
-				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
-				return false;
-			}
-			vertexIndices.push_back(vertexIndex[0]);
-			vertexIndices.push_back(vertexIndex[1]);
-			vertexIndices.push_back(vertexIndex[2]);
-			uvIndices.push_back(uvIndex[0]);
-			uvIndices.push_back(uvIndex[1]);
-			uvIndices.push_back(uvIndex[2]);
-			normalIndices.push_back(normalIndex[0]);
-			normalIndices.push_back(normalIndex[1]);
-			normalIndices.push_back(normalIndex[2]);
-			// string line;
-			// while (getline(in, line))
-			// {
-			// 	if (line.substr(0, 2) == "v ")
-			// 	{
-			// 		istringstream s(line.substr(2));
-			// 		glm::vec4 v;
-			// 		s >> v.x;
-			// 		s >> v.y;
-			// 		s >> v.z;
-			// 		v.w = 1.0f;
-			// 		vertices.push_back(v);
-			// 	}
-			// 	else if (line.substr(0, 2) == "f ")
-			// 	{
-			// 		istringstream s(line.substr(2));
-			// 		GLushort a, b, c;
-			// 		GLushort A, B, C;
-			// 		GLushort a1, b1, c1;
-			// 		const char *chh = line.c_str();
-			// 		sscanf(chh, "f %hi/%hi/%hi %hi/%hi/%hi %hi/%hi/%hi", &a, &A, &a1, &b, &B, &b1, &c, &C, &c1);
-			// 		//cout << a << " " << b << " " << c << endl;
-			// 		// s >> a;
-			// 		// s >> b;
-			// 		// s >> c;
-			// 		a--;
-			// 		b--;
-			// 		c--;
-			// 		elements.push_back(a);
-			// 		elements.push_back(b);
-			// 		elements.push_back(c);
-			// 	}
-			// 	else if (line[0] == '#')
-			// 	{
-			// 		/* ignoring this line */
-			// 	}
-			// 	else
-			// 	{
-			// 		/* ignoring this line */
-			// 	}
-			// }
-
-			// normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
-			// for (int i = 0; i < elements.size(); i += 3)
-			// {
-			// 	GLushort ia = elements[i];
-			// 	GLushort ib = elements[i + 1];
-			// 	GLushort ic = elements[i + 2];
-			// 	glm::vec3 normal = glm::normalize(glm::cross(
-			// 		glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
-			// 		glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
-			// 	normals[ia] = normals[ib] = normals[ic] = normal;
-			// }
-	}
-	}
-	
-	for (unsigned int i = 0; i < vertexIndices.size(); i++)
-	{
-		unsigned int vertexIndex = vertexIndices[i];
-		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-		vertices.push_back(vec4(vertex, 1.0f));
-	}
-	for (unsigned int i = 0; i < uvIndices.size(); i++)
-	{
-		unsigned int uvIndex = uvIndices[i];
-		glm::vec2 uv = temp_uvs[uvIndex - 1];
-		uvs.push_back(uv);
-	}
-	for (unsigned int i = 0; i < normalIndices.size(); i++)
-	{
-		unsigned int normalIndex = normalIndices[i];
-		glm::vec3 normal = temp_normals[normalIndex - 1];
-		normals.push_back(normal);
-	}
-	return true;
-}
 
 int main(int argc, char **argv)
 {
@@ -318,32 +180,32 @@ int main(int argc, char **argv)
 
 	// build and compile our shader zprogram
 	// ------------------------------------
-	Shader lightingShader("../shaders/shader.vs", "../shaders/shader.fs");
+	Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
 	//Shader lampShader("../shaders/lamp.vs", "../shaders/lamp.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 
-	if (argc < 1)
-		load_obj("../suzanne.obj", vertices, normals, uvs);
-	else
-	{	char str[80];
-		strcpy(str, "../");
-		strcat(str, argv[1]);
-		load_obj(str, vertices, normals, uvs);
-	}
 	
-	cout << "Elements count: " << elements.size() << endl;
+	Mesh mesh;
+	if (argc < 1)
+		mesh.load_obj("../resources/suzanne.obj");
+	else
+	{	
+		string path = "../";
+		mesh.load_obj(path.append(argv[1]).c_str());
+	}
 	cout << glGetString(GL_VERSION) << endl;
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate the texture
+	 glCheckError();
 	int width, height, nrChannels;
 	string s;
 	if (argv[2])
@@ -363,57 +225,55 @@ int main(int argc, char **argv)
 		}
 		stbi_image_free(data);
 	}
-	lightingShader.use(); // don't forget to activate/use the shader before setting uniforms!
-	// // either set it manually like so:
-	// glUniform1i(glGetUniformLocation(lightingShader.ID, "texture1"), 0);
-	// // or set it via the texture class
-	lightingShader.setInt("texture1", 0);
-
-	unsigned int VBO, VAO, EBO, vbo_normals, vbo_uvs;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
-	glBindVertexArray(VAO);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	// cout << vertices <<
-	glEnableVertexAttribArray(0);
+	shader.use();
+	shader.setInt("texture1", 0);
+	mesh.upload();
+	//glCheckError();
+	// unsigned int VBO, VAO, EBO, vbo_normals, vbo_uvs;
+	// glGenVertexArrays(1, &VAO);
+	// glGenBuffers(1, &VBO);
+	// glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
+	// glBindVertexArray(VAO);
+	// glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	// // cout << vertices <<
+	// glEnableVertexAttribArray(0);
 
 	
 	// glGenBuffers(1, &EBO);
 	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
 
-	if (normals.size() > 0)
-	{
-		// glEnableVertexAttribArray(1);
-		// glGenBuffers(1, &vbo_normals);
-		// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-		// 			 normals.data(), GL_STATIC_DRAW);
-		// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-		glGenBuffers(1, &vbo_normals);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-					 normals.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(1);
-	}
-	if (uvs.size() > 0)
-	{
-		// glEnableVertexAttribArray(1);
-		// glGenBuffers(1, &vbo_normals);
-		// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-		// 			 normals.data(), GL_STATIC_DRAW);
-		// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-		glGenBuffers(1, &vbo_uvs);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-		glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
-					 uvs.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(2);
-	}
+	// if (normals.size() > 0)
+	// {
+	// 	// glEnableVertexAttribArray(1);
+	// 	// glGenBuffers(1, &vbo_normals);
+	// 	// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+	// 	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+	// 	// 			 normals.data(), GL_STATIC_DRAW);
+	// 	// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	// 	glGenBuffers(1, &vbo_normals);
+	// 	glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+	// 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+	// 				 normals.data(), GL_STATIC_DRAW);
+	// 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	// 	glEnableVertexAttribArray(1);
+	// }
+	// if (uvs.size() > 0)
+	// {
+	// 	// glEnableVertexAttribArray(1);
+	// 	// glGenBuffers(1, &vbo_normals);
+	// 	// glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+	// 	// glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
+	// 	// 			 normals.data(), GL_STATIC_DRAW);
+	// 	// glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	// 	glGenBuffers(1, &vbo_uvs);
+	// 	glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+	// 	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
+	// 				 uvs.data(), GL_STATIC_DRAW);
+	// 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	// 	glEnableVertexAttribArray(2);
+	// }
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -449,15 +309,15 @@ int main(int argc, char **argv)
 		}
 
 
-		lightingShader.use();
+		shader.use();
 
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		lightingShader.setMat4("projection", projection);
-		lightingShader.setMat4("view", view);
-		lightingShader.setVec3("objectColor", vec3(1,1,1));
-		lightingShader.setVec3("lightPos", lightPos);
+		shader.setMat4("projection", projection);
+		shader.setMat4("view", view);
+		shader.setVec3("objectColor", vec3(1,1,1));
+		shader.setVec3("lightPos", lightPos);
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -465,11 +325,9 @@ int main(int argc, char **argv)
 		{
 			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
 		}
-		lightingShader.setMat4("model", model);
+		shader.setMat4("model", model);
 
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-	
+		mesh.draw();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -507,8 +365,6 @@ int main(int argc, char **argv)
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	// glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
