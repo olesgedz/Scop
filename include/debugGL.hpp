@@ -1,6 +1,5 @@
 #ifndef DEBUGGL_HPP
 # define DEBUGGL_HPP
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <glad/glad.h>
 

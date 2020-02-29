@@ -10,6 +10,7 @@ using namespace std;
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
+#include <glad/glad.h>
 
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -31,7 +32,7 @@ using namespace gl;
 #endif
 
 // Include glfw3.h after our OpenGL definitions
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
@@ -85,17 +86,17 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		// Decide GL+GLSL versions
+	// Decide GL+GLSL versions
 #if __APPLE__
 	// GL 3.2 + GLSL 150
-	const char* glsl_version = "#version 150";
+	const char *glsl_version = "#version 150";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);		   // Required on Mac
 #else
 	// GL 3.0 + GLSL 130
-	const char* glsl_version = "#version 130";
+	const char *glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
@@ -106,9 +107,9 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 	cout << GL_VERSION << endl;
-		// glfw window creation
-		// --------------------
-		GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", NULL, NULL);
+	// glfw window creation
+	// --------------------
+	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -122,19 +123,19 @@ int main(int argc, char **argv)
 	glfwSwapInterval(1);
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetInputMode(window, GLFW_STICKY_KEYS,GLFW_TRUE);
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 	// Initialize OpenGL loader
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-		bool err = gl3wInit() != 0;
+	bool err = gl3wInit() != 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-		bool err = glewInit() != GLEW_OK;
+	bool err = glewInit() != GLEW_OK;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-		bool err = gladLoadGL() == 0;
+	bool err = gladLoadGL() == 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
-		bool err = false;
-	glbinding::initialize([](const char* name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
+	bool err = false;
+	glbinding::initialize([](const char *name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
 #else
-		bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+	bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
 #endif
 	if (err)
 	{
@@ -148,9 +149,8 @@ int main(int argc, char **argv)
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-///////
-
-	 // Setup Dear ImGui context
+	///////
+	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 	// build and compile our shader zprogram
 	// ------------------------------------
 	Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
-	//Shader lampShader("../shaders/lamp.vs", "../shaders/lamp.fs");
+	//Shader shader("../shaders/lamp.vs", "../shaders/lamp.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -208,127 +208,278 @@ int main(int argc, char **argv)
 	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load and generate the texture
 	 glCheckError();
-	int width, height, nrChannels;
-	string s;
-	if (argv[2])
-	{
-		s.append("../");
-		s.append(argv[2]);
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char *data = stbi_load(s.c_str(), &width, &height, &nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			mesh.textureExists = 1;
-		}
-		else
-		{
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-	}
-	else
-	{
-		mesh.textureExists = 0;
-	}
-	
-	
-	shader.use();
-	shader.setInt("texture1", 0);
-	mesh.upload();
+	// int width, height, nrChannels;
+	// string s;
+	// if (argv[2])
+	// {
+	// 	s.append("../");
+	// 	s.append(argv[2]);
+	// 	stbi_set_flip_vertically_on_load(true);
+	// 	unsigned char *data = stbi_load(s.c_str(), &width, &height, &nrChannels, 0);
+	// 	if (data)
+	// 	{
+	// 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	// 		glGenerateMipmap(GL_TEXTURE_2D);
+	// 		mesh.textureExists = 1;
+	// 	}
+	// 	else
+	// 	{
+	// 		std::cout << "Failed to load texture" << std::endl;
+	// 	}
+	// 	stbi_image_free(data);
+	// }
+	// else
+	// {
+	// 	mesh.textureExists = 0;
+	// }
 
-	float lightPosF[3] = {0, 2.0f, 3.0f};
-	while (!glfwWindowShouldClose(window))
-	{
+	 float vertices[] = {
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f
+	 };
+	 float vertices2[] = {
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
 
-		// 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-		// 	// -------------------------------------------------------------------------------
-		// 	glfwSwapBuffers(window);
-		// 	glfwPollEvents();
-		// Poll and handle events (inputs, window resize, etc.)
-		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
-		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
-		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-		glfwPollEvents();
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// Start the Dear ImGui frame
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
 
-		// per-frame time logic
-		// --------------------
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-		// input
-		// -----
-		processInput(window);
-		// render
-		// ------
-		
-		if (rotate_light)
-		{
-			lightPosF[0] = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
-			lightPosF[2] = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
-		}
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
 
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
 
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 -0.5f,
+		 -0.5f,
 
-		shader.use();
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 0.5f,
+		 -0.5f,
+		 0.5f,
+		 -0.5f,
+	 };
+	 // first, configure the cube's VAO (and VBO)
+	 unsigned int VBO, cubeVAO;
+	 glGenVertexArrays(1, &cubeVAO);
+	 glGenBuffers(1, &VBO);
+	 cout << VBO << endl;
 
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-		shader.setVec3("objectColor", vec3(1,1,1));
-		shader.setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
-		shader.setInt("textureExist", mesh.textureExists);
+	 glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		// world transformation
-		glm::mat4 model = glm::mat4(1.0f);
-		if (rotate_model)
-		{
-			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
-		}
-		model = translate(model, modelPos );
-		shader.setMat4("model", model);
+	 glBindVertexArray(cubeVAO);
 
-		mesh.draw();
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+	 // position attribute
+	 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	 glEnableVertexAttribArray(0);
 
-		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+	 // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+	 unsigned int VBO2,lightVAO;
+	 glGenVertexArrays(1, &lightVAO);
+	 glGenBuffers(1, &VBO2);
+	 cout << VBO2 << endl;
+	 glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 
-		static float f = 0.0f;
-		static int counter = 0;
+	 glBindVertexArray(lightVAO);
 
-		ImGui::Begin("3D Model");
-		ImGui::Text("This is some useful text.");		   // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Rotate model: ", &rotate_model);
-		ImGui::Checkbox("Rotate light source", &rotate_light);
-		ImGui::InputFloat3("LightPos", lightPosF, 2 );
+	 // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
+	 glBindBuffer(GL_ARRAY_BUFFER, VBO2);
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			 // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-		
-		if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
+	 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+	 glEnableVertexAttribArray(0);
+	 glCheckError();
+	 float lightPosF[3] = {0, 2.0f, 3.0f};
+	 while (!glfwWindowShouldClose(window))
+	 {
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
-		// Rendering
-		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		 // 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		 // 	// -------------------------------------------------------------------------------
+		 // 	glfwSwapBuffers(window);
+		 // 	glfwPollEvents();
+		 // Poll and handle events (inputs, window resize, etc.)
+		 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+		 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+		 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+		 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+		 glfwPollEvents();
+		 glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		 // Start the Dear ImGui frame
 
-		glfwSwapBuffers(window);
+		 // per-frame time logic
+		 // --------------------
+		 float currentFrame = glfwGetTime();
+		 deltaTime = currentFrame - lastFrame;
+		 lastFrame = currentFrame;
+		 // input
+		 // -----
+		 processInput(window);
+		 // render
+		 // ------
+		 shader.use();
+		 shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		 shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
+		 // view/projection transformations
+		 glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		 glm::mat4 view = camera.GetViewMatrix();
+		 shader.setMat4("projection", projection);
+		 shader.setMat4("view", view);
+
+		 // world transformation
+		 glm::mat4 model = glm::mat4(1.0f);
+		 shader.setMat4("model", model);
+
+		 // render the cube
+		 glBindVertexArray(cubeVAO);
+		 glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		 // also draw the lamp object
+		 shader.use();
+		 shader.setMat4("projection", projection);
+		 shader.setMat4("view", view);
+		 model = glm::mat4(1.0f);
+		 model = glm::translate(model, vec3(-3,0,0));
+		 model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		 shader.setMat4("model", model);
+
+		 glBindVertexArray(lightVAO);
+		 glDrawArrays(GL_TRIANGLES, 0, 36);
+		 ImGui_ImplOpenGL3_NewFrame();
+		 ImGui_ImplGlfw_NewFrame();
+		 ImGui::NewFrame();
+
+		 // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+
+		 static float f = 0.0f;
+		 static int counter = 0;
+
+		 ImGui::Begin("3D Model");
+		 ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
+		 ImGui::Checkbox("Rotate model: ", &rotate_model);
+		 ImGui::Checkbox("Rotate light source", &rotate_light);
+		 ImGui::InputFloat3("LightPos", lightPosF, 2);
+
+		 ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			  // Edit 1 float using a slider from 0.0f to 1.0f
+		 ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
+
+		 if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
+			 counter++;
+		 ImGui::SameLine();
+		 ImGui::Text("counter = %d", counter);
+
+		 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		 ImGui::End();
+		 // Rendering
+		 ImGui::Render();
+		 int display_w, display_h;
+		 glfwGetFramebufferSize(window, &display_w, &display_h);
+		 glViewport(0, 0, display_w, display_h);
+		 ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		 glfwSwapBuffers(window);
 
 	}
 

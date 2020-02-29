@@ -33,7 +33,6 @@
 // #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 // #endif
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "stb_image.h"
 #include <glm/gtx/string_cast.hpp>
 #include <glm/glm.hpp>
