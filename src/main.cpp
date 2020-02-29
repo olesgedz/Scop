@@ -197,7 +197,6 @@ int main(int argc, char **argv)
 		mesh.load_obj(path.append(argv[1]).c_str());
 		
 	}
-	mesh2.load_obj("../resources/diablo3_pose.obj");
 	cout << glGetString(GL_VERSION) << endl;
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -238,7 +237,6 @@ int main(int argc, char **argv)
 	shader.use();
 	shader.setInt("texture1", 0);
 	mesh.upload();
-	mesh2.upload();
 
 	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
@@ -298,7 +296,6 @@ int main(int argc, char **argv)
 		shader.setMat4("model", model);
 
 		mesh.draw();
-		mesh2.draw();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
