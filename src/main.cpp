@@ -188,13 +188,16 @@ int main(int argc, char **argv)
 
 	
 	Mesh mesh;
-	if (argc < 1)
-		mesh.load_obj("../resources/suzanne.obj");
+	Mesh mesh2;
+	if (argc < 2)
+		mesh.load_obj("../resources/diablo3_pose.obj");
 	else
 	{	
 		string path = "../";
 		mesh.load_obj(path.append(argv[1]).c_str());
+		
 	}
+	mesh2.load_obj("../resources/diablo3_pose.obj");
 	cout << glGetString(GL_VERSION) << endl;
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -235,6 +238,8 @@ int main(int argc, char **argv)
 	shader.use();
 	shader.setInt("texture1", 0);
 	mesh.upload();
+	mesh2.upload();
+
 	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
 	{
@@ -264,11 +269,11 @@ int main(int argc, char **argv)
 		// render
 		// ------
 		
-		// if (rotate_light)
-		// {
-		// 	lightPos.x = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
-		// 	lightPos.z = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
-		// }
+		if (rotate_light)
+		{
+			lightPosF[0] = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
+			lightPosF[2] = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
+		}
 
 
 
@@ -282,7 +287,6 @@ int main(int argc, char **argv)
 		shader.setVec3("objectColor", vec3(1,1,1));
 		shader.setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
 		shader.setInt("textureExist", mesh.textureExists);
-		cout << mesh.textureExists << endl;
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -294,6 +298,7 @@ int main(int argc, char **argv)
 		shader.setMat4("model", model);
 
 		mesh.draw();
+		mesh2.draw();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
