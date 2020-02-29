@@ -436,14 +436,14 @@ int main(int argc, char **argv)
 		 glBindVertexArray(cubeVAO);
 		 glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		 // also draw the lamp object
-		 shader.use();
-		 shader.setMat4("projection", projection);
-		 shader.setMat4("view", view);
-		 model = glm::mat4(1.0f);
-		 model = glm::translate(model, vec3(-3,0,0));
-		 model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-		 shader.setMat4("model", model);
+		//  // also draw the lamp object
+		//  shader.use();
+		//  shader.setMat4("projection", projection);
+		//  shader.setMat4("view", view);
+		//  model = glm::mat4(1.0f);
+		//  model = glm::translate(model, vec3(-3,0,0));
+		//  model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		//  shader.setMat4("model", model);
 
 		 glBindVertexArray(lightVAO);
 		 glDrawArrays(GL_TRIANGLES, 0, 36);
