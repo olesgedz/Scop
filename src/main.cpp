@@ -2,7 +2,6 @@
 #include "mesh.hpp"
 #include "camera.hpp"
 #include <string.h>
-#include "debugGL.hpp"
 using namespace std;
 //https://learnopengl.com/In-Practice/Debugging
 
@@ -32,7 +31,7 @@ using namespace gl;
 
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
-
+// #include "debug_gl.hpp"
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -181,6 +180,7 @@ int main(int argc, char **argv)
 	// build and compile our shader zprogram
 	// ------------------------------------
 	Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
+	Shader shader2("../shaders/shader.vs", "../shaders/shader.fs");
 	//Shader lampShader("../shaders/lamp.vs", "../shaders/lamp.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -190,56 +190,62 @@ int main(int argc, char **argv)
 	Mesh mesh;
 	Mesh mesh2;
 	if (argc < 2)
-		mesh.load_obj("../resources/diablo3_pose.obj");
+		cout << "model/texture" << endl;
 	else
 	{	
 		string path = "../";
 		mesh.load_obj(path.append(argv[1]).c_str());
 		
 	}
-	mesh2.load_obj("../resources/diablo3_pose.obj");
+	mesh2.load_obj("../resources/young-priestess/girl_scroll.obj");;
 	cout << glGetString(GL_VERSION) << endl;
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load and generate the texture
-	 glCheckError();
-	int width, height, nrChannels;
-	string s;
+	mesh.bind_shader(&shader);
+	mesh2.bind_shader(&shader2);
+
 	if (argv[2])
 	{
-		s.append("../");
-		s.append(argv[2]);
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char *data = stbi_load(s.c_str(), &width, &height, &nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			mesh.textureExists = 1;
-		}
-		else
-		{
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
+		string path_texture = "../";
+
+		mesh.load_texture(path_texture.append(argv[2]).c_str());
+		mesh.shader->use();
+		mesh.bind_texture();
+	}
+    glCheckError();
+	//mesh2.shader->use();
+
+	  unsigned int texture;
+    glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, texture);
+
+	cout <<  " t2"<< texture << endl;
+    int width, height, nrChannels;
+
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char *data = stbi_load("../resources/young-priestess/Props_Diffuse.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		mesh2.textureExists =1;
 	}
 	else
 	{
-		mesh.textureExists = 0;
+		std::cout << "Failed to load texture" << std::endl;
 	}
+		//mesh2.textureExists = 0;
+
+		// stbi_image_free(data);
+	//mesh2.load_texture("../resources/young-priestess/Props_Diffuse.png");
+	mesh2.shader->use();
+	mesh2.bind_texture();
+	//mesh2.load_texture("../resources/diablo3_pose_diffuse.tga");
+	//mesh2.bind_texture();
+
+
 	
-	
-	shader.use();
-	shader.setInt("texture1", 0);
 	mesh.upload();
 	mesh2.upload();
-
+	glCheckError();
 	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
 	{
@@ -277,16 +283,16 @@ int main(int argc, char **argv)
 
 
 
-		shader.use();
+		mesh.shader->use();
 
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-		shader.setVec3("objectColor", vec3(1,1,1));
-		shader.setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
-		shader.setInt("textureExist", mesh.textureExists);
+		mesh.shader->setMat4("projection", projection);
+		mesh.shader->setMat4("view", view);
+		mesh.shader->setVec3("objectColor", vec3(1,1,1));
+		mesh.shader->setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
+		mesh.shader->setInt("textureExist", mesh.textureExists);
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -295,9 +301,21 @@ int main(int argc, char **argv)
 			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
 		}
 		model = translate(model, modelPos );
-		shader.setMat4("model", model);
-
+		mesh.shader->setMat4("model", model);
+		glBindVertexArray(mesh.voa);
+		glBindTexture(GL_TEXTURE_2D,mesh.texture);
 		mesh.draw();
+		
+		mesh2.shader->use();
+		mesh2.shader->setMat4("projection", projection);
+		mesh2.shader->setMat4("view", view);
+		mesh2.shader->setVec3("objectColor", vec3(1,1,1));
+		mesh2.shader->setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
+		mesh2.shader->setInt("textureExist", mesh2.textureExists);
+		mesh2.shader->setMat4("model", model);
+			glBindVertexArray(mesh2.voa);
+			glBindTexture(GL_TEXTURE_2D, texture);
+
 		mesh2.draw();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
