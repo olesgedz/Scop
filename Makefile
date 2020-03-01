@@ -13,7 +13,7 @@
 
 
 NAME = Scop
-FLAGS = -g # -Wall -Wextra -Werror
+FLAGS = -g -std=c++11# -Wall -Wextra -Werror
 CC = clang++
 
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ \
@@ -32,6 +32,7 @@ IMGUI_DIRECTORY := $(DIRECTORY)/libs/imgui
 # IMGUI := $(patsubst %.cpp, %.o, $(IMGUI_SRCS))
 SRCS_DIRECTORY = ./src/
 SRCS_LIST = main.cpp \
+			mesh.cpp	\
 			stb_image_helper.cpp\
 			$(IMGUI_DIRECTORY)/examples/imgui_impl_glfw.cpp \
 			$(IMGUI_DIRECTORY)/examples/imgui_impl_opengl3.cpp \

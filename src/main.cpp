@@ -2,7 +2,6 @@
 #include "mesh.hpp"
 #include "camera.hpp"
 #include <string.h>
-#include "debugGL.hpp"
 using namespace std;
 //https://learnopengl.com/In-Practice/Debugging
 
@@ -32,7 +31,7 @@ using namespace gl;
 
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
-
+// #include "debug_gl.hpp"
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -190,54 +189,35 @@ int main(int argc, char **argv)
 	Mesh mesh;
 	Mesh mesh2;
 	if (argc < 2)
-		mesh.load_obj("../resources/diablo3_pose.obj");
+		cout << "model/texture" << endl;
 	else
 	{	
 		string path = "../";
 		mesh.load_obj(path.append(argv[1]).c_str());
 		
 	}
+	//mesh2.load_obj("../resources/diablo3_pose.obj");;
 	cout << glGetString(GL_VERSION) << endl;
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load and generate the texture
-	 glCheckError();
-	int width, height, nrChannels;
-	string s;
+	mesh.bind_shader(&shader);
+	//mesh2.bind_shader(&shader);
+
 	if (argv[2])
 	{
-		s.append("../");
-		s.append(argv[2]);
-		stbi_set_flip_vertically_on_load(true);
-		unsigned char *data = stbi_load(s.c_str(), &width, &height, &nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			mesh.textureExists = 1;
-		}
-		else
-		{
-			std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-	}
-	else
-	{
-		mesh.textureExists = 0;
-	}
-	
-	
-	shader.use();
-	shader.setInt("texture1", 0);
-	mesh.upload();
+		string path_texture = "../";
 
+		mesh.load_texture(path_texture.append(argv[2]).c_str());
+		shader.use();
+		mesh.bind_texture();
+	}
+    glCheckError();
+	//mesh2.load_texture("../resources/diablo3_pose_diffuse.tga");
+	//mesh2.bind_texture();
+
+
+	
+	mesh.upload();
+	//mesh2.upload();
+	glCheckError();
 	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
 	{
@@ -294,8 +274,11 @@ int main(int argc, char **argv)
 		}
 		model = translate(model, modelPos );
 		shader.setMat4("model", model);
-
+		glBindVertexArray(mesh.voa);
 		mesh.draw();
+		
+
+		mesh2.draw();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
