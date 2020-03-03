@@ -165,6 +165,15 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 		{
 			textureExists = 0;
 		}
+		if (this->temp_vertices.size() > 0) {
+			glGenBuffers(1, &this->ibo_vertices);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo_vertices);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->temp_vertices.size() * sizeof(this->temp_vertices[0]),
+				this->temp_vertices.data(), GL_STATIC_DRAW);
+		}
+	
+
+
 	}
 
 	/**
@@ -188,7 +197,7 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 				0                   // offset of first element
 			);
 		}
-
+	glCheckError();
 		if (this->vbo_normals != 0)
 		{
 			glEnableVertexAttribArray(1);
@@ -210,9 +219,22 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			
 		}
-		//glBindVertexArray(this->voa);
-		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 
+		 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_vertices);
+  			int size;
+			glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);  
+
+		//glBindVertexArray(this->voa);
+		// if(this->ibo_elements == 0)
+		// {
+		// 	//glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
+		// }
+		// else
+		// {
+			
+			glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+		// }
+		// glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 		if (this->vbo_normals != 0)
 			glDisableVertexAttribArray(attribute_v_normal);
 		if (this->vbo_vertices != 0)

@@ -6,7 +6,7 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/19 17:57:56 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/03/02 20:00:45 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/03/03 19:47:52 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,9 @@ struct Texture
 
 class Mesh {
 private:
-	GLuint vbo_vertices, vbo_normals, vbo_uvs, ibo_elements;
 public:
+	GLuint vbo_vertices, vbo_normals, vbo_uvs, ibo_vertices, ibo_elements;
+
 	vector<Texture> textures;
 	GLuint voa;
 	GLuint texture;
