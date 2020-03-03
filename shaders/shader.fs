@@ -24,27 +24,28 @@ void main()
 {
 	
 	// ambient
-	float ambientStrength = 0.1;
-	vec3 ambient = ambientStrength * lightColor;    
+	// float ambientStrength = 0.1;
+	// vec3 ambient = ambientStrength * lightColor;    
 	
-	 // diffuse 
-	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(LightPos - FragPos);
-	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = diff * vec3(1,1,1);
+	//  // diffuse 
+	// vec3 norm = normalize(Normal);
+	// vec3 lightDir = normalize(LightPos - FragPos);
+	// float diff = max(dot(norm, lightDir), 0.0);
+	// vec3 diffuse = diff * vec3(1,1,1);
 	
-	// specular
-	float specularStrength = 0.5;
-	vec3 viewDir = normalize(-FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir is (0,0,0) - Position => -Position
-	vec3 reflectDir = reflect(-lightDir, norm);  
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	vec3 specular = specularStrength * spec * lightColor; 
-	vec3 result;
-	if (textureExist == 1)
-		result = (diffuse + specular + ambient) * vec3(texture(texture1, TextureCoord));// * objectColor;
-	else
-		result = (diffuse + specular + ambient) * objectColor;
-	FragColor = vec4(result, 1.0);
+	// // specular
+	// float specularStrength = 0.5;
+	// vec3 viewDir = normalize(-FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir is (0,0,0) - Position => -Position
+	// vec3 reflectDir = reflect(-lightDir, norm);  
+	// float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	// vec3 specular = specularStrength * spec * lightColor; 
+	// vec3 result;
+	// if (textureExist == 1)
+	// 	result = (diffuse + specular + ambient) * vec3(texture(texture1, TextureCoord));// * objectColor;
+	// else
+	// 	result = (diffuse + specular + ambient) * objectColor;
+	//FragColor = vec4(result, 1.0);
+	FragColor  = vec4(1,0,0,1);
 }
 // #version 330 core
 // out vec4 FragColor;
