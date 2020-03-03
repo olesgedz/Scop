@@ -13,9 +13,8 @@ void Mesh::bind_shader(Shader *shader)
 }
 bool Mesh::load_texture(const char *filename)
 {
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glGenTextures(1, &this->texture);
+    glBindTexture(GL_TEXTURE_2D, this->texture);
     int width, height, nrChannels;
 	string s;
 	s.append("./");
@@ -33,14 +32,16 @@ bool Mesh::load_texture(const char *filename)
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
+	cout <<  " t1"<< texture << endl;
+
 		stbi_image_free(data);
 	return true;
 }
 
 bool Mesh::bind_texture()
 {
-	shader->use();
-	shader->setInt("texture1", 0);
+	//this->shader->use();
+	this->shader->setInt("texture1", 0);
 	return true;
 }
 
@@ -128,53 +129,17 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 	 * Store object vertices, normals and/or elements in graphic card
 	 * buffers
 	 */
-	void Mesh::upload() {
-		// if (this->vertices.size() > 0) {
-		// 	glGenBuffers(1, &this->vbo_vertices);
-		// 	glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
-		// 	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(this->vertices[0]),
-		// 	 this->vertices.data(), GL_STATIC_DRAW);
-		// }
-	
-		
-		// if (this->normals.size() > 0) {
-		// 	glGenBuffers(1, &this->vbo_normals);
-		// 	glBindBuffer(GL_ARRAY_BUFFER, this->vbo_normals);
-		// 	glBufferData(GL_ARRAY_BUFFER, this->normals.size() * sizeof(this->normals[0]),
-		// 	 this->normals.data(), GL_STATIC_DRAW);
-		// }
-		
-		// if (this->elements.size() > 0) {
-		// 	glGenBuffers(1, &this->ibo_elements);
-		// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo_elements);
-		// 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->elements.size() * sizeof(this->elements[0]),
-		// 	 this->elements.data(), GL_STATIC_DRAW);
-		// }
-		// glCheckError();
-
-		// // if (uvs.size() > 0)
-		// // {
-		// // 	glGenBuffers(1, &this->vbo_uvs);
-		// // 	glBindBuffer(GL_ARRAY_BUFFER, this->vbo_uvs);
-		// // 	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(this->uvs[0]),
-		// // 				uvs.data(), GL_STATIC_DRAW);
-		
-		// }
-	if (this->vertices.size() > 0) {
-		glGenVertexArrays(1, &this->voa);
-		glGenBuffers(1, &this->vbo_vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
-		glBindVertexArray(this->voa);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-	}
-
-	
-	// glGenBuffers(1, &EBO);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements.size() * sizeof(elements.data()[0]), elements.data(), GL_STATIC_DRAW);
-
+	void Mesh::upload()
+	{
+		if (this->vertices.size() > 0) {
+			glGenVertexArrays(1, &this->voa);
+			glGenBuffers(1, &this->vbo_vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
+			glBindVertexArray(this->voa);
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(0);
+		}
 		if (normals.size() > 0)
 		{
 			glGenBuffers(1, &vbo_normals);
@@ -200,15 +165,18 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 		{
 			textureExists = 0;
 		}
-		
-
 	}
 
 	/**
 	 * Draw the object
 	 */
-	void Mesh::draw() {
-		if (this->vbo_vertices != 0) {
+	void Mesh::draw()
+	{
+		glBindVertexArray(this->voa);
+		glBindTexture(GL_TEXTURE_2D, this->texture);
+
+		if (this->vbo_vertices != 0)
+		{
 			glEnableVertexAttribArray(1);
 			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
 			glVertexAttribPointer(
@@ -221,7 +189,8 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 			);
 		}
 
-		if (this->vbo_normals != 0) {
+		if (this->vbo_normals != 0)
+		{
 			glEnableVertexAttribArray(1);
 			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_normals);
 			glVertexAttribPointer(
@@ -241,24 +210,8 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			
 		}
-		
-		/* Apply object's transformation matrix */
-		// glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(this->object2world));
-		// /* Transform normal vectors with transpose of inverse of upper left
-		// 	 3x3 model matrix (ex-gl_NormalMatrix): */
-		// glm::mat3 m_3x3_inv_transp = glm::transpose(glm::inverse(glm::mat3(this->object2world)));
-		// glUniformMatrix3fv(uniform_m_3x3_inv_transp, 1, GL_FALSE, glm::value_ptr(m_3x3_inv_transp));
-		
-		/* Push each element in buffer_vertices to the vertex shader */
-		// if (this->ibo_elements != 0) {
-		// 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ibo_elements);
-		// 	int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-		// 	glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-		// } else {
-		glBindVertexArray(this->voa);
-
+		//glBindVertexArray(this->voa);
 		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
-		// }
 
 		if (this->vbo_normals != 0)
 			glDisableVertexAttribArray(attribute_v_normal);

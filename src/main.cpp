@@ -83,7 +83,6 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 		// Decide GL+GLSL versions
 #if __APPLE__
 	// GL 3.2 + GLSL 150
@@ -114,6 +113,9 @@ int main(int argc, char **argv)
 		glfwTerminate();
 		return -1;
 	}
+	GLFWimage images[1]; images[0].pixels = stbi_load("../resources/icon.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
+	stbi_image_free(images[0].pixels);
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
@@ -186,37 +188,43 @@ int main(int argc, char **argv)
 	// ------------------------------------------------------------------
 
 	
-	Mesh mesh;
-	Mesh mesh2;
+	vector<Mesh> meshes;
 	if (argc < 2)
-		cout << "model/texture" << endl;
-	else
-	{	
-		string path = "../";
-		mesh.load_obj(path.append(argv[1]).c_str());
-		
-	}
-	//mesh2.load_obj("../resources/diablo3_pose.obj");;
-	cout << glGetString(GL_VERSION) << endl;
-	mesh.bind_shader(&shader);
-	//mesh2.bind_shader(&shader);
-
-	if (argv[2])
 	{
-		string path_texture = "../";
-
-		mesh.load_texture(path_texture.append(argv[2]).c_str());
-		shader.use();
-		mesh.bind_texture();
+		cout << "model/texture" << endl;
+		exit(0);
+	} 
+	string path;
+	std::vector<std::string> args(argv, argv+argc);
+	for (size_t i = 1; i < args.size(); ++i) {
+		path = "../";
+		if (args[i].find(".obj") != std::string::npos)
+		{
+			// cout << args[i] << endl;
+			meshes.push_back(Mesh());
+			meshes.back().load_obj(path.append(argv[i]).c_str());
+		}
+		else
+		{
+			if (meshes.size() <= i)
+			{
+				// cout << "texture for " << args[i - 1] << endl;
+				meshes.back().load_texture(path.append(argv[i]).c_str());
+			}
+		}
 	}
-    glCheckError();
-	//mesh2.load_texture("../resources/diablo3_pose_diffuse.tga");
-	//mesh2.bind_texture();
 
 
-	
-	mesh.upload();
-	//mesh2.upload();
+	cout << glGetString(GL_VERSION) << endl;
+
+
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		meshes[i].bind_shader(&shader);
+		meshes[i].shader->use();
+		meshes[i].bind_texture();
+		meshes[i].upload();
+	}
 	glCheckError();
 	float lightPosF[3] = {0, 2.0f, 3.0f};
 	while (!glfwWindowShouldClose(window))
@@ -254,31 +262,32 @@ int main(int argc, char **argv)
 		}
 
 
-
-		shader.use();
-
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-		shader.setVec3("objectColor", vec3(1,1,1));
-		shader.setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
-		shader.setInt("textureExist", mesh.textureExists);
-
-		// world transformation
-		glm::mat4 model = glm::mat4(1.0f);
-		if (rotate_model)
+		for(int i = 0; i < meshes.size(); i++)
 		{
-			model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
-		}
-		model = translate(model, modelPos );
-		shader.setMat4("model", model);
-		glBindVertexArray(mesh.voa);
-		mesh.draw();
-		
+			meshes[i].shader->use();
 
-		mesh2.draw();
+			// view/projection transformations
+			glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+			glm::mat4 view = camera.GetViewMatrix();
+			meshes[i].shader->setMat4("projection", projection);
+			meshes[i].shader->setMat4("view", view);
+			meshes[i].shader->setVec3("objectColor", vec3(1,1,1));
+			meshes[i].shader->setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
+			meshes[i].shader->setInt("textureExist", meshes[i].textureExists);
+
+			// world transformation
+			glm::mat4 model = glm::mat4(1.0f);
+			if (rotate_model)
+			{
+				model = rotate(model, (float)glfwGetTime() * glm::radians(30.0f), vec3(0, 1, 0));
+			}
+			model = translate(model, modelPos);
+			meshes[i].shader->setMat4("model", model);
+			glBindVertexArray(meshes[i].voa);
+			glBindTexture(GL_TEXTURE_2D,meshes[i].texture);
+			meshes[i].draw();
+		}
+		
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();

@@ -6,7 +6,7 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/19 17:57:56 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/02/29 21:03:08 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/03/03 17:07:44 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@ private:
 public:
 	vector<Texture> textures;
 	GLuint voa;
-		GLint textureExists;
+	GLuint texture;
+	GLint textureExists;
 	vector<glm::vec4> vertices;
 	vector<glm::vec3> normals;
 	vector<glm::vec2> uvs;
