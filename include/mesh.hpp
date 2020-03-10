@@ -6,7 +6,7 @@
 /*   By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/19 17:57:56 by jblack-b          #+#    #+#             */
-/*   Updated: 2020/03/10 17:33:39 by jblack-b         ###   ########.fr       */
+/*   Updated: 2020/03/10 20:18:06 by jblack-b         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,9 @@ public:
 	vector<glm::vec3> vertices;
 	vector<glm::vec3> normals;
 	vector<glm::vec2> uvs;
+	vector<glm::vec3> temp_vertices;
+	vector<glm::vec3> temp_normals;
+	vector<glm::vec2> temp_uvs;
 	Shader *shader;
 	vector<GLushort> elements;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
