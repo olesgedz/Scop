@@ -65,19 +65,19 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 		{
 			glm::vec3 vertex;
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
-			temp_vertices.push_back(vertex);
+			vertices.push_back(vertex);
 		}
 		else if (strcmp(lineHeader, "vt") == 0)
 		{
 			glm::vec2 uv;
 			fscanf(file, "%f %f\n", &uv.x, &uv.y);
-			temp_uvs.push_back(uv);
+			uvs.push_back(uv);
 		}
 		else if (strcmp(lineHeader, "vn") == 0)
 		{
 			glm::vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
-			temp_normals.push_back(normal);
+			normals.push_back(normal);
 		}
 		else if (strcmp(lineHeader, "f") == 0)
 		{
@@ -89,9 +89,9 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
 				return false;
 			}
-			vertexIndices.push_back(vertexIndex[0]);
-			vertexIndices.push_back(vertexIndex[1]);
-			vertexIndices.push_back(vertexIndex[2]);
+			vertexIndices.push_back(vertexIndex[0] - 1);
+			vertexIndices.push_back(vertexIndex[1] - 1);
+			vertexIndices.push_back(vertexIndex[2] - 1);
 			uvIndices.push_back(uvIndex[0]);
 			uvIndices.push_back(uvIndex[1]);
 			uvIndices.push_back(uvIndex[2]);
@@ -101,24 +101,24 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 		}
 	}
 	
-	for (unsigned int i = 0; i < vertexIndices.size(); i++)
-	{
-		unsigned int vertexIndex = vertexIndices[i];
-		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-		vertices.push_back(vec4(vertex, 1.0f));
-	}
-	for (unsigned int i = 0; i < uvIndices.size(); i++)
-	{
-		unsigned int uvIndex = uvIndices[i];
-		glm::vec2 uv = temp_uvs[uvIndex - 1];
-		uvs.push_back(uv);
-	}
-	for (unsigned int i = 0; i < normalIndices.size(); i++)
-	{
-		unsigned int normalIndex = normalIndices[i];
-		glm::vec3 normal = temp_normals[normalIndex - 1];
-		normals.push_back(normal);
-	}
+	// for (unsigned int i = 0; i < vertexIndices.size(); i++)
+	// {
+	// 	unsigned int vertexIndex = vertexIndices[i];
+	// 	glm::vec3 vertex = vertices[vertexIndex - 1];
+	// 	vertices.push_back(vec4(vertex, 1.0f));
+	// }
+	// for (unsigned int i = 0; i < uvIndices.size(); i++)
+	// {
+	// 	unsigned int uvIndex = uvIndices[i];
+	// 	glm::vec2 uv = uvs[uvIndex - 1];
+	// 	uvs.push_back(uv);
+	// }
+	// for (unsigned int i = 0; i < normalIndices.size(); i++)
+	// {
+	// 	unsigned int normalIndex = normalIndices[i];
+	// 	glm::vec3 normal = normals[normalIndex - 1];
+	// 	normals.push_back(normal);
+	// }
 //	cout << "Elements count: " << elements.size() << endl;
 
 	return true;
@@ -132,38 +132,31 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 	void Mesh::upload()
 	{
 		if (this->vertices.size() > 0) {
-			glGenVertexArrays(1, &this->voa);
 			glGenBuffers(1, &this->vbo_vertices);
+
+			glGenVertexArrays(1, &this->voa);
+			glBindVertexArray(this->voa);
+
 			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices.data()[0]), vertices.data(), GL_STATIC_DRAW);
-			glBindVertexArray(this->voa);
-			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+			
+
+			glGenBuffers(1, &this->ebo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->ebo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->vertexIndices.size() * sizeof(this->vertexIndices[0]),
+			this->vertexIndices.data(), GL_STATIC_DRAW);
+			
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 			glEnableVertexAttribArray(0);
-		}
-		if (normals.size() > 0)
-		{
-			glGenBuffers(1, &vbo_normals);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(normals[0]),
-						normals.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(1);
-		}
-		cout << uvs.size() << endl;
-		if (uvs.size() > 0)
-		{	
-			if (textureExists)
-			textureExists = 1;
-			glGenBuffers(1, &vbo_uvs);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(uvs[0]),
-						uvs.data(), GL_STATIC_DRAW);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(2);
-		}
-		else
-		{
-			textureExists = 0;
+			glCheckError();
+
+		
+			// for (auto vertex : vertices)
+			// {
+			// 	cout << vertex << endl;
+			// }
+			cout << ibo_elements << endl;
 		}
 	}
 
@@ -173,45 +166,14 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 	void Mesh::draw()
 	{
 		glBindVertexArray(this->voa);
-		glBindTexture(GL_TEXTURE_2D, this->texture);
+		// glBindTexture(GL_TEXTURE_2D, this->texture);
 
-		if (this->vbo_vertices != 0)
-		{
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_vertices);
-			glVertexAttribPointer(
-				1,  // attribute
-				4,                  // number of elements per vertex, here (x,y,z,w)
-				GL_FLOAT,           // the type of each element
-				GL_FALSE,           // take our values as-is
-				0,                  // no extra data between each position
-				0                   // offset of first element
-			);
-		}
+		
 
-		if (this->vbo_normals != 0)
-		{
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_normals);
-			glVertexAttribPointer(
-				2, // attribute
-				4,                  // number of elements per vertex, here (x,y,z)
-				GL_FLOAT,           // the type of each element
-				GL_FALSE,           // take our values as-is
-				0,                  // no extra data between each position
-				0                   // offset of first element
-			);
-		}
-
-
-		if (this->vbo_uvs != 0) {
-			glEnableVertexAttribArray(2);
-			glBindBuffer(GL_ARRAY_BUFFER, this->vbo_uvs);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			
-		}
+		
+		glDrawElements(GL_TRIANGLES, this->vertexIndices.size(), GL_UNSIGNED_INT, 0);
 		//glBindVertexArray(this->voa);
-		glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
+		//glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 
 		if (this->vbo_normals != 0)
 			glDisableVertexAttribArray(attribute_v_normal);
