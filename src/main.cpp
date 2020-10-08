@@ -15,14 +15,14 @@ using namespace std;
 //  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
 //  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h>    // Initialize with gl3wInit()
+#include <GL/gl3w.h> // Initialize with gl3wInit()
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>    // Initialize with glewInit()
+#include <GL/glew.h> // Initialize with glewInit()
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>  // Initialize with gladLoadGL()
+#include <glad/glad.h> // Initialize with gladLoadGL()
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
-#define GLFW_INCLUDE_NONE         // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/glbinding.h>  // Initialize with glbinding::initialize()
+#define GLFW_INCLUDE_NONE		 // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
+#include <glbinding/glbinding.h> // Initialize with glbinding::initialize()
 #include <glbinding/gl/gl.h>
 using namespace gl;
 #else
@@ -36,15 +36,14 @@ using namespace gl;
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-static void glfw_error_callback(int error, const char* description)
+static void glfw_error_callback(int error, const char *description)
 {
 	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
@@ -57,14 +56,12 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 int cursor = 0;
-	// timing
+// timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 vector<glm::vec4> vertices;
 vector<glm::vec3> normals;
 vector<glm::vec2> uvs;
-
-
 
 // lighting
 glm::vec3 lightPos(0.5f, 0.5f, 2.0f);
@@ -73,8 +70,33 @@ glm::vec3 modelPos(0.0f, 0.0f, 0.0f);
 using namespace glm;
 
 //bool load_obj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements)
-
-
+mat4 set_projection_matrix()
+{
+	float s;
+	float far;
+	float near;
+	float fov = 70.f;
+	mat4 ret = glm::zero<mat4>();
+	far = 100.f;
+	near = 0.1f;
+	s = 1 / (tan(fov * 0.5 * M_PI / 180.0));
+	// ret[0] = s / ((float)SCR_WIDTH / (float)SCR_HEIGHT);
+	// ret[5] = s;
+	// ret[10] = -(far + near) / (far - near);
+	// ret[11] = -1;
+	// ret[14] = -2 * far * near / (far - near);
+	ret[0][0] = s / ((float)SCR_WIDTH / (float)SCR_HEIGHT);
+	ret[1][1] = s;
+	ret[2][2] = -(far + near) / (far - near);
+	ret[2][3] = -1;
+	ret[3][2] = -2 * far * near / (far - near);
+	// ret[0][0] = 1.810660;
+	// ret[1][1] = 2.414213;
+	// ret[2][2] = -1.002002;
+	// ret[2][3] = -1;
+	// ret[3][2] = -0.200200;
+	return (ret);
+}
 int main(int argc, char **argv)
 {
 	glfwSetErrorCallback(glfw_error_callback);
@@ -83,17 +105,17 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		// Decide GL+GLSL versions
+	// Decide GL+GLSL versions
 #if __APPLE__
 	// GL 3.2 + GLSL 150
-	const char* glsl_version = "#version 150";
+	const char *glsl_version = "#version 150";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);		   // Required on Mac
 #else
 	// GL 3.0 + GLSL 130
-	const char* glsl_version = "#version 130";
+	const char *glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
@@ -104,16 +126,17 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 	cout << GL_VERSION << endl;
-		// glfw window creation
-		// --------------------
-		GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", NULL, NULL);
+	// glfw window creation
+	// --------------------
+	GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scop", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-	GLFWimage images[1]; images[0].pixels = stbi_load("../resources/icon.png", &images[0].width, &images[0].height, 0, 4);
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("../resources/icon.png", &images[0].width, &images[0].height, 0, 4);
 	glfwSetWindowIcon(window, 1, images);
 	stbi_image_free(images[0].pixels);
 	glfwMakeContextCurrent(window);
@@ -123,19 +146,19 @@ int main(int argc, char **argv)
 	glfwSwapInterval(1);
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetInputMode(window, GLFW_STICKY_KEYS,GLFW_TRUE);
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 	// Initialize OpenGL loader
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-		bool err = gl3wInit() != 0;
+	bool err = gl3wInit() != 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-		bool err = glewInit() != GLEW_OK;
+	bool err = glewInit() != GLEW_OK;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-		bool err = gladLoadGL() == 0;
+	bool err = gladLoadGL() == 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
-		bool err = false;
-	glbinding::initialize([](const char* name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
+	bool err = false;
+	glbinding::initialize([](const char *name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
 #else
-		bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+	bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
 #endif
 	if (err)
 	{
@@ -149,12 +172,13 @@ int main(int argc, char **argv)
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-///////
+	///////
 
-	 // Setup Dear ImGui context
+	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGuiIO &io = ImGui::GetIO();
+	(void)io;
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -165,15 +189,12 @@ int main(int argc, char **argv)
 	// Setup Platform/Renderer bindings
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
- 	bool show_demo_window = true;
+	bool show_demo_window = true;
 	bool show_another_window = false;
 	bool rotate_model = true;
 	bool rotate_light = false;
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-
-
 
 	// configure global opengl state
 	// -----------------------------
@@ -187,16 +208,16 @@ int main(int argc, char **argv)
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 
-	
 	vector<Mesh> meshes;
 	if (argc < 2)
 	{
 		cout << "model/texture" << endl;
 		exit(0);
-	} 
+	}
 	string path;
-	std::vector<std::string> args(argv, argv+argc);
-	for (size_t i = 1; i < args.size(); ++i) {
+	std::vector<std::string> args(argv, argv + argc);
+	for (size_t i = 1; i < args.size(); ++i)
+	{
 		path = "../";
 		if (args[i].find(".obj") != std::string::npos)
 		{
@@ -214,9 +235,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-
 	cout << glGetString(GL_VERSION) << endl;
-
 
 	for (int i = 0; i < meshes.size(); i++)
 	{
@@ -254,24 +273,28 @@ int main(int argc, char **argv)
 		processInput(window);
 		// render
 		// ------
-		
+
 		if (rotate_light)
 		{
 			lightPosF[0] = 0.0f + sin(glfwGetTime() / 2) * 1.5f;
 			lightPosF[2] = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
 		}
+		glm::mat4 projection = set_projection_matrix(); //glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
+		cout << to_string(projection) << endl;
 
-		for(int i = 0; i < meshes.size(); i++)
+		cout << to_string(glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f)) << endl;
+
+		for (int i = 0; i < meshes.size(); i++)
 		{
 			meshes[i].shader->use();
 
 			// view/projection transformations
-			glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
 			glm::mat4 view = camera.GetViewMatrix();
 			meshes[i].shader->setMat4("projection", projection);
 			meshes[i].shader->setMat4("view", view);
-			meshes[i].shader->setVec3("objectColor", vec3(1,1,1));
+			meshes[i].shader->setVec3("objectColor", vec3(1, 1, 1));
 			meshes[i].shader->setVec3("lightPos", lightPosF[0], lightPosF[1], lightPosF[2]);
 			meshes[i].shader->setInt("textureExist", meshes[i].textureExists);
 
@@ -284,10 +307,10 @@ int main(int argc, char **argv)
 			model = translate(model, modelPos);
 			meshes[i].shader->setMat4("model", model);
 			glBindVertexArray(meshes[i].voa);
-			glBindTexture(GL_TEXTURE_2D,meshes[i].texture);
+			glBindTexture(GL_TEXTURE_2D, meshes[i].texture);
 			meshes[i].draw();
 		}
-		
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -298,14 +321,14 @@ int main(int argc, char **argv)
 		static int counter = 0;
 
 		ImGui::Begin("3D Model");
-		ImGui::Text("This is some useful text.");		   // Display some text (you can use a format strings too)
+		ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Rotate model: ", &rotate_model);
 		ImGui::Checkbox("Rotate light source", &rotate_light);
-		ImGui::InputFloat3("LightPos", lightPosF, 2 );
+		ImGui::InputFloat3("LightPos", lightPosF, 2);
 
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			 // Edit 1 float using a slider from 0.0f to 1.0f
 		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-		
+
 		if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
 			counter++;
 		ImGui::SameLine();
@@ -321,7 +344,6 @@ int main(int argc, char **argv)
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
-
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
@@ -381,37 +403,36 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
-	// make sure the viewport matches the new window dimensions; note that width and 
+	// make sure the viewport matches the new window dimensions; note that width and
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 }
 
-
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
 
-		if (firstMouse)
-		{
-			lastX = xpos;
-			lastY = ypos;
-			firstMouse = false;
-		}
-
-		float xoffset = xpos - lastX;
-		float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
+	if (firstMouse)
+	{
 		lastX = xpos;
 		lastY = ypos;
-		if (!cursor)
-		{
-			camera.ProcessMouseMovement(xoffset, yoffset);
-		}
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+	if (!cursor)
+	{
+		camera.ProcessMouseMovement(xoffset, yoffset);
+	}
 }
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
 }
