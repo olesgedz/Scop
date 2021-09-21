@@ -73,7 +73,7 @@ public:
 
 	bool load_obj(const char *filename);
     bool load_obj_ply(const char *filename);
-
+    void make_cicle(glm::vec3 pos);
 	/**
 	 * Store object vertices, normals and/or elements in graphic card
 	 * buffers

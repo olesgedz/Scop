@@ -59,7 +59,7 @@ bool Mesh::load_obj_ply(const char *filename)//, vector<glm::vec4> &vertices, ve
 
     for(array<double, 3> ver : modelVertices)
     {
-        vertices.push_back(vec4(ver[0], ver[1], ver[2], 1.0f));
+        vertices.push_back(vec3(ver[0], ver[1], ver[2]));
     }
     for(array<unsigned char, 3> ver : modelColors)
     {
