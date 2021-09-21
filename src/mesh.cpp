@@ -45,6 +45,44 @@ bool Mesh::bind_texture()
 	return true;
 }
 
+
+//vertex_buffer make_circle(vector2 radius, float phi_start, float phi_end, std::size_t n_segments) {
+//    vertex_buffer buffer;
+//    float step = 2.0f * M_PI / static_cast<float>(n_segments);
+//    auto center = std::vector<float>{0.0f, 0.0f};
+//    if (phi_end == phi_start) {
+//        // special case for equal angles
+//        // this means that this is no circle should be drawn
+//        // but we need to return at least some vertexes to render
+//        return {{center, center, center}};
+//    }
+//
+//    if (phi_start > 2.0 * M_PI + epsilon) {
+//        phi_start -= static_cast<int>(phi_start / (2.0 * M_PI)) * 2.0 * M_PI;
+//    }
+//
+//    if (phi_end > 2.0 * M_PI + epsilon) {
+//        phi_end -= static_cast<int>(phi_end / (2.0 * M_PI)) * 2.0 * M_PI;
+//    }
+//
+//    for (float angle = phi_start; angle < phi_end; angle += step) {
+//        float next_angle = angle + step;
+//        if (angle < phi_start || angle > phi_end) {
+//            break;
+//        }
+//        std::vector<float> rotated_point1{radius[0] * cos(angle) + center[0],
+//                                          radius[1] * sin(angle) + center[1]};
+//        std::vector<float> rotated_point2{radius[0] * cos(next_angle) + center[0],
+//                                          radius[1] * sin(next_angle) + center[1]};
+//
+//        buffer.push_back(rotated_point1);
+//        buffer.push_back(rotated_point2);
+//        buffer.push_back(center);
+//    }
+//
+//    return buffer;
+//}
+
 bool Mesh::load_obj_ply(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<vec2> &uvs)
 {
 
@@ -56,14 +94,20 @@ bool Mesh::load_obj_ply(const char *filename)//, vector<glm::vec4> &vertices, ve
     //auto  vertices = plyIn.getElement("vertices").getListProperty<float>();
 
 
-
+    float eps = 0.003;
     for(array<double, 3> ver : modelVertices)
     {
         vertices.push_back(vec3(ver[0], ver[1], ver[2]));
+        vertices.push_back(vec3(ver[0] - eps, ver[1] - eps, ver[2]));
+        vertices.push_back(vec3(ver[0] + eps, ver[1] - eps, ver[2]));
+
     }
     for(array<unsigned char, 3> ver : modelColors)
     {
         normals.push_back(vec3(ver[0] / 255.f, ver[1] / 255.f, ver[2] / 255.f));
+        normals.push_back(vec3(ver[0] / 255.f, ver[1] / 255.f, ver[2] / 255.f));
+        normals.push_back(vec3(ver[0] / 255.f, ver[1] / 255.f, ver[2] / 255.f));
+
 //        printf("%f %f %f ",ver[0] / 255.f,ver[1] / 255.f,ver[2] / 255.f);
     }
 
@@ -277,7 +321,7 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 		else
 		{
 //			glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
-            glDrawArrays(GL_POINTS, 0, this->vertices.size());
+            glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
 		}
 		
 		
