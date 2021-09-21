@@ -1,7 +1,17 @@
-#version 330 core
+// Fragment shader:
+// ================
+#version 400 core
+
+
+
 out vec4 FragColor;
-int vec3 Normal;
+
+in vec3 FragPos;
+in vec3 Normal;
+
 void main()
 {
-    FragColor = vec4(1,1,1, 1.0f);
+
+
+	FragColor = vec4(Normal, 1.0);
 }

@@ -17,7 +17,8 @@ FLAGS = -g -std=c++11# -Wall -Wextra -Werror
 CC = clang++
 
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ \
- -I./libs/stb_image/ -I./libs/glm/ -I./libs/imgui/  -I./libs/imgui/backends/  -I./libs/imgui/examples/
+ -I./libs/stb_image/ -I./libs/glm/ -I./libs/imgui/  -I./libs/imgui/backends/  -I./libs/imgui/examples/ \
+ -I./libs/happly/
 
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 

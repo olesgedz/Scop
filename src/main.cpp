@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 
 	// build and compile our shader zprogram
 	// ------------------------------------
-	Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
+	Shader shader("../shaders/test.vs", "../shaders/test.fs");
 	//Shader lampShader("../shaders/lamp.vs", "../shaders/lamp.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -227,6 +227,11 @@ int main(int argc, char **argv)
 			meshes.push_back(Mesh());
 			meshes.back().load_obj(path.append(argv[i]).c_str());
 		}
+        else if (args[i].find(".ply") != std::string::npos)
+        {
+            meshes.push_back(Mesh());
+            meshes.back().load_obj_ply(path.append(argv[i]).c_str());
+        }
 		else
 		{
 			if (meshes.size() <= i)

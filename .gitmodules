@@ -10,3 +10,6 @@
 [submodule "libs/FastNoise"]
 	path = libs/FastNoise
 	url = https://github.com/Auburns/FastNoise.git
+[submodule "libs/happly"]
+	path = libs/happly
+	url = https://github.com/nmwsharp/happly

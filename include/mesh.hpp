@@ -20,6 +20,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "shader.h"
 #include "debug_gl.hpp"
+#include "happly.h"
 
 using namespace std;
 using namespace glm;
@@ -71,7 +72,7 @@ public:
 	bool bind_texture();
 
 	bool load_obj(const char *filename);
-
+    bool load_obj_ply(const char *filename);
 
 	/**
 	 * Store object vertices, normals and/or elements in graphic card

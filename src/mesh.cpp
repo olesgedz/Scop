@@ -45,6 +45,32 @@ bool Mesh::bind_texture()
 	return true;
 }
 
+bool Mesh::load_obj_ply(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<vec2> &uvs)
+{
+
+    happly::PLYData plyIn(filename, true);
+
+    auto  elementA_prop1 = plyIn.getElement("vertex").getPropertyNames();
+    auto  modelVertices = plyIn.getVertexPositions();
+    auto  modelColors = plyIn.getVertexColors();
+    //auto  vertices = plyIn.getElement("vertices").getListProperty<float>();
+
+
+
+    for(array<double, 3> ver : modelVertices)
+    {
+        vertices.push_back(vec4(ver[0], ver[1], ver[2], 1.0f));
+    }
+    for(array<unsigned char, 3> ver : modelColors)
+    {
+        normals.push_back(vec3(ver[0] / 255.f, ver[1] / 255.f, ver[2] / 255.f));
+//        printf("%f %f %f ",ver[0] / 255.f,ver[1] / 255.f,ver[2] / 255.f);
+    }
+
+
+    return true;
+}
+
 bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<vec2> &uvs)
 {
 	FILE *file = fopen(filename, "r");
@@ -245,11 +271,13 @@ bool Mesh::load_obj(const char *filename)//, vector<glm::vec4> &vertices, vector
 
 		if (false && this->vertexIndices.size() > 0)
 		{
-			glDrawElements(GL_TRIANGLES, this->vertexIndices.size(), GL_UNSIGNED_INT, 0);
+//			glDrawElements(GL_TRIANGLES, this->vertexIndices.size(), GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, this->vertexIndices.size(), GL_UNSIGNED_INT, 0);
 		}
 		else
 		{
-			glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
+//			glDrawArrays(GL_TRIANGLES, 0, this->vertices.size());
+            glDrawArrays(GL_POINTS, 0, this->vertices.size());
 		}
 		
 		
