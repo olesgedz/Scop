@@ -17,7 +17,7 @@ FLAGS = -g -std=c++11# -Wall -Wextra -Werror
 CC = clang++
 
 INCLUDES = -I./libs/glfw/include/ -I./libs/glad/include/ -I./include/ \
- -I./libs/stb_image/ -I./libs/glm/ -I./libs/imgui/ -I./libs/imgui/examples/
+ -I./libs/stb_image/ -I./libs/glm/ -I./libs/imgui/  -I./libs/imgui/backends/  -I./libs/imgui/examples/
 
 HEADERS_DIRECTORY = include/ 
 HEADERS_LIST = 
@@ -34,10 +34,11 @@ SRCS_DIRECTORY = ./src/
 SRCS_LIST = main.cpp \
 			mesh.cpp	\
 			stb_image_helper.cpp\
-			$(IMGUI_DIRECTORY)/examples/imgui_impl_glfw.cpp \
-			$(IMGUI_DIRECTORY)/examples/imgui_impl_opengl3.cpp \
+			$(IMGUI_DIRECTORY)/backends/imgui_impl_glfw.cpp \
+			$(IMGUI_DIRECTORY)/backends/imgui_impl_opengl3.cpp \
 			$(IMGUI_DIRECTORY)/imgui.cpp \
 			$(IMGUI_DIRECTORY)/imgui_draw.cpp \
+			$(IMGUI_DIRECTORY)/imgui_tables.cpp \
 			$(IMGUI_DIRECTORY)/imgui_widgets.cpp
 
 OBJS_DIRECTORY = objects/

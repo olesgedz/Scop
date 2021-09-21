@@ -14,20 +14,22 @@ using namespace std;
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
 //  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
 //  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h> // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h> // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+//#undef IMGUI_IMPL_OPENGL_LOADER_GLEW
+//#define IMGUI_IMPL_OPENGL_LOADER_GLAD
+//#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+//#include <GL/gl3w.h> // Initialize with gl3wInit()
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+//#include <GL/glew.h> // Initialize with glewInit()
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
 #include <glad/glad.h> // Initialize with gladLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
-#define GLFW_INCLUDE_NONE		 // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/glbinding.h> // Initialize with glbinding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
+//#define GLFW_INCLUDE_NONE		 // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
+//#include <glbinding/glbinding.h> // Initialize with glbinding::initialize()
+//#include <glbinding/gl/gl.h>
+//using namespace gl;
+//#else
+////#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+//#endif
 
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
@@ -148,18 +150,18 @@ int main(int argc, char **argv)
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 	// Initialize OpenGL loader
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-	bool err = gl3wInit() != 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-	bool err = glewInit() != GLEW_OK;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+//#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+//	bool err = gl3wInit() != 0;
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+//	bool err = glewInit() != GLEW_OK;
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
 	bool err = gladLoadGL() == 0;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
-	bool err = false;
-	glbinding::initialize([](const char *name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
-#else
-	bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
-#endif
+//#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING)
+//	bool err = false;
+//	glbinding::initialize([](const char *name) { return (glbinding::ProcAddress)glfwGetProcAddress(name); });
+//#else
+//	bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
+//#endif
 	if (err)
 	{
 		fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -280,11 +282,6 @@ int main(int argc, char **argv)
 			lightPosF[2] = 0.0f + cos(glfwGetTime() / 2) * 1.5f;
 		}
 		glm::mat4 projection = set_projection_matrix(); //glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-		cout << to_string(projection) << endl;
-
-		cout << to_string(glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f)) << endl;
-
 		for (int i = 0; i < meshes.size(); i++)
 		{
 			meshes[i].shader->use();
@@ -324,7 +321,7 @@ int main(int argc, char **argv)
 		ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 		ImGui::Checkbox("Rotate model: ", &rotate_model);
 		ImGui::Checkbox("Rotate light source", &rotate_light);
-		ImGui::InputFloat3("LightPos", lightPosF, 2);
+		ImGui::InputFloat3("LightPos", lightPosF, "1");
 
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);			 // Edit 1 float using a slider from 0.0f to 1.0f
 		ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
